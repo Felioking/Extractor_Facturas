@@ -1,0 +1,62 @@
+2025-10-12 13:14:43 - root - INFO - [helpers.py:47] - Sistema de logging configurado
+2025-10-12 13:14:43 - root - INFO - [helpers.py:48] - Logs en: logs/app.log
+2025-10-12 13:14:43 - root - INFO - [config.py:33] - Configuracion inicializada
+2025-10-12 13:14:43 - root - INFO - [main.py:26] - APLICACION INICIADA
+2025-10-12 13:14:43 - root - INFO - [main_window.py:11] - Ventana principal inicializada
+2025-10-12 13:14:43 - root - INFO - [main.py:29] - Aplicacion iniciada correctamente
+2025-10-12 13:14:49 - root - INFO - [main.py:31] - Aplicacion finalizada
+2025-10-12 13:15:12 - root - INFO - [helpers.py:47] - Sistema de logging configurado
+2025-10-12 13:15:12 - root - INFO - [helpers.py:48] - Logs en: logs/app.log
+2025-10-12 13:15:12 - root - INFO - [config.py:33] - Configuracion inicializada
+2025-10-12 13:15:12 - root - INFO - [main.py:26] - APLICACION INICIADA
+2025-10-12 13:15:13 - root - INFO - [main_window.py:11] - Ventana principal inicializada
+2025-10-12 13:15:13 - root - INFO - [main.py:29] - Aplicacion iniciada correctamente
+2025-10-12 13:15:34 - root - INFO - [main.py:31] - Aplicacion finalizada
+2025-10-12 13:22:03 - root - INFO - [helpers.py:47] - Sistema de logging configurado
+2025-10-12 13:22:03 - root - INFO - [helpers.py:48] - Logs en: logs/app.log
+2025-10-12 13:22:03 - root - INFO - [config.py:33] - Configuracion inicializada
+2025-10-12 13:22:03 - root - INFO - [main.py:26] - APLICACION INICIADA
+2025-10-12 13:22:03 - root - INFO - [main_window.py:19] - Ventana principal inicializada
+2025-10-12 13:22:03 - root - INFO - [main.py:29] - Aplicacion iniciada correctamente
+2025-10-12 13:23:30 - root - INFO - [main.py:31] - Aplicacion finalizada
+2025-10-12 13:23:34 - root - INFO - [helpers.py:47] - Sistema de logging configurado
+2025-10-12 13:23:34 - root - INFO - [helpers.py:48] - Logs en: logs/app.log
+2025-10-12 13:23:34 - root - INFO - [config.py:33] - Configuracion inicializada
+2025-10-12 13:23:34 - root - INFO - [main.py:26] - APLICACION INICIADA
+2025-10-12 13:23:34 - root - INFO - [main_window.py:19] - Ventana principal inicializada
+2025-10-12 13:23:34 - root - INFO - [main.py:29] - Aplicacion iniciada correctamente
+2025-10-12 13:24:26 - root - INFO - [main.py:31] - Aplicacion finalizada
+2025-10-12 13:24:29 - root - INFO - [helpers.py:47] - Sistema de logging configurado
+2025-10-12 13:24:29 - root - INFO - [helpers.py:48] - Logs en: logs/app.log
+2025-10-12 13:24:29 - root - INFO - [config.py:35] - Configuracion inicializada
+2025-10-12 13:24:29 - root - INFO - [main.py:26] - APLICACION INICIADA
+2025-10-12 13:24:29 - root - INFO - [main_window.py:19] - Ventana principal inicializada
+2025-10-12 13:24:29 - root - INFO - [main.py:29] - Aplicacion iniciada correctamente
+2025-10-12 13:24:54 - root - INFO - [main.py:31] - Aplicacion finalizada
+2025-10-12 13:35:26 - root - INFO - [helpers.py:47] - Sistema de logging configurado
+2025-10-12 13:35:26 - root - INFO - [helpers.py:48] - Logs en: logs/app.log
+2025-10-12 13:35:26 - root - INFO - [config.py:35] - Configuracion inicializada
+2025-10-12 13:35:26 - root - INFO - [main.py:26] - APLICACION INICIADA
+2025-10-12 13:35:26 - root - INFO - [main_window.py:19] - Ventana principal inicializada
+2025-10-12 13:35:26 - root - INFO - [main.py:29] - Aplicacion iniciada correctamente
+2025-10-12 13:35:36 - ocr - INFO - [text_extractor.py:26] - Extrayendo texto de: C:/Users/farnaud/OneDrive - ISBEL S.A/Documents/Reportes Gastos/2025/1006/20250930_095701.jpg
+2025-10-12 13:35:38 - ocr - INFO - [text_extractor.py:64] - Texto extraído: 725 caracteres, confianza: 55.8%
+2025-10-12 13:35:38 - processing - INFO - [data_extractor.py:25] - Extrayendo datos de factura del texto
+2025-10-12 13:35:38 - processing - INFO - [data_extractor.py:48] - Datos extraídos: 5 campos encontrados
+2025-10-12 13:35:38 - database - INFO - [database_manager.py:13] - Inicializando DatabaseManager: facturas.db
+2025-10-12 13:35:38 - database - INFO - [database_manager.py:21] - Conexion a BD establecida
+2025-10-12 13:35:38 - database - INFO - [database_manager.py:55] - Tablas de BD inicializadas
+2025-10-12 13:35:38 - database - INFO - [database_manager.py:79] - Factura guardada: None
+2025-10-12 13:35:38 - root - INFO - [main_window.py:241] - Factura guardada en BD: None
+2025-10-12 13:35:38 - database - INFO - [database_manager.py:120] - Conexion a BD cerrada
+2025-10-12 13:36:19 - ocr - INFO - [text_extractor.py:26] - Extrayendo texto de: C:/Users/farnaud/OneDrive - ISBEL S.A/Documents/Reportes Gastos/2025/1006/20250930_095553.jpg
+2025-10-12 13:36:20 - ocr - INFO - [text_extractor.py:64] - Texto extraído: 68 caracteres, confianza: 59.1%
+2025-10-12 13:36:20 - processing - INFO - [data_extractor.py:25] - Extrayendo datos de factura del texto
+2025-10-12 13:36:20 - processing - INFO - [data_extractor.py:48] - Datos extraídos: 3 campos encontrados
+2025-10-12 13:36:20 - database - INFO - [database_manager.py:13] - Inicializando DatabaseManager: facturas.db
+2025-10-12 13:36:20 - database - INFO - [database_manager.py:21] - Conexion a BD establecida
+2025-10-12 13:36:20 - database - INFO - [database_manager.py:55] - Tablas de BD inicializadas
+2025-10-12 13:36:20 - database - INFO - [database_manager.py:79] - Factura guardada: None
+2025-10-12 13:36:20 - root - INFO - [main_window.py:241] - Factura guardada en BD: None
+2025-10-12 13:36:20 - database - INFO - [database_manager.py:120] - Conexion a BD cerrada
+2025-10-12 13:36:53 - root - INFO - [main.py:31] - Aplicacion finalizada
