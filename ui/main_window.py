@@ -1,197 +1,181 @@
 """
-Ventana principal de la aplicación
+Ventana principal de la aplicación de extracción de facturas
 """
-
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 import logging
-from ui.components.navigation import NavigationPanel
-from ui.components.forms import DataForms
 from ui.components.tabs import MainTabs
-from ui.dialogs import DialogsManager
+from utils.helpers import center_window
+
+logger = logging.getLogger(__name__)
+
 
 class MainWindow:
     """Ventana principal de la aplicación"""
     
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Extractor Inteligente de Facturas - v3.0")
-        self.root.geometry("1400x900")
+    def __init__(self, db_manager):
+        self.db_manager = db_manager
+        self.root = None
+        self.tabs = None
         
-        # Inicializar componentes
-        self.setup_ui()
-        self.setup_event_handlers()
+    def _setup_window(self):
+        """Configurar la ventana principal"""
+        self.root = tk.Tk()
+        self.root.title("Extractor de Facturas - Sistema Avanzado")
+        self.root.geometry("1200x800")
         
-        logging.info("✓ Ventana principal inicializada")
+        # Icono de la aplicación (opcional)
+        try:
+            self.root.iconbitmap("assets/icon.ico")  # Si tienes un icono
+        except:
+            pass  # Si no hay icono, continuar sin él
+        
+        # Configurar estilo
+        self._setup_styles()
+        
+        # Centrar ventana
+        center_window(self.root, 1200, 800)
+        
+        # Proteger contra cierre accidental
+        self.root.protocol("WM_DELETE_WINDOW", self._on_close)
     
-    def setup_ui(self):
-        """Configura la interfaz de usuario principal"""
+    def _setup_styles(self):
+        """Configurar estilos de la interfaz"""
+        style = ttk.Style()
+        
+        # Configurar tema
+        try:
+            style.theme_use('clam')  # Tema moderno
+        except:
+            pass  # Usar tema por defecto si 'clam' no está disponible
+        
+        # Configurar colores y fuentes
+        style.configure('TFrame', background='#f0f0f0')
+        style.configure('TLabel', background='#f0f0f0', font=('Arial', 10))
+        style.configure('TButton', font=('Arial', 10))
+        style.configure('Header.TLabel', font=('Arial', 14, 'bold'))
+        
+    def _setup_ui(self):
+        """Configurar la interfaz de usuario"""
         # Frame principal
-        self.main_frame = ttk.Frame(self.root, padding="10")
-        self.main_frame.pack(fill=tk.BOTH, expand=True)
+        main_frame = ttk.Frame(self.root, padding="10")
+        main_frame.pack(fill='both', expand=True)
         
-        # Panel de controles superiores
-        self.setup_control_panel()
+        # Header
+        header_frame = ttk.Frame(main_frame)
+        header_frame.pack(fill='x', pady=(0, 10))
         
-        # Frame de contenido principal
-        self.content_frame = ttk.Frame(self.main_frame)
-        self.content_frame.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
+        title_label = ttk.Label(
+            header_frame, 
+            text="📄 Sistema Avanzado de Extracción de Facturas",
+            style='Header.TLabel'
+        )
+        title_label.pack(pady=10)
         
-        # Panel izquierdo - Navegación e imagen
-        self.navigation_panel = NavigationPanel(self.content_frame)
-        self.navigation_panel.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
+        # Pestañas principales
+        self.tabs = MainTabs(main_frame, self.db_manager)
         
-        # Panel derecho - Formularios y datos
-        self.data_panel = ttk.LabelFrame(self.content_frame, text="Datos de la Factura", padding="10")
-        self.data_panel.pack(side=tk.RIGHT, fill=tk.BOTH, expand=False)
-        self.data_panel.configure(width=500)
-        self.data_panel.pack_propagate(False)
+        # Status bar
+        self._setup_status_bar(main_frame)
+    
+    def _setup_status_bar(self, parent):
+        """Configurar barra de estado"""
+        status_frame = ttk.Frame(parent)
+        status_frame.pack(fill='x', pady=(10, 0))
         
-        # Notebook para pestañas
-        self.setup_tabs()
+        self.status_var = tk.StringVar(value="Listo")
+        status_label = ttk.Label(
+            status_frame, 
+            textvariable=self.status_var,
+            relief='sunken',
+            anchor='w'
+        )
+        status_label.pack(fill='x', padx=5, pady=2)
     
-    def setup_control_panel(self):
-        """Configura el panel de controles superiores"""
-        control_frame = ttk.LabelFrame(self.main_frame, text="Controles Avanzados", padding="10")
-        control_frame.pack(fill=tk.X, pady=(0, 10))
-        
-        # Fila 1: Navegación
-        nav_frame = ttk.Frame(control_frame)
-        nav_frame.pack(fill=tk.X, pady=(0, 5))
-        
-        ttk.Button(nav_frame, text="📁 Cargar Carpeta", 
-                  command=self.on_cargar_carpeta).pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Button(nav_frame, text="📄 Cargar Factura", 
-                  command=self.on_cargar_imagen).pack(side=tk.LEFT, padx=(0, 10))
-        
-        # Fila 2: Procesamiento
-        process_frame = ttk.Frame(control_frame)
-        process_frame.pack(fill=tk.X, pady=(0, 5))
-        
-        ttk.Button(process_frame, text="🔍 Extraer Datos", 
-                  command=self.on_extraer_datos).pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Button(process_frame, text="🔄 Procesar Lote", 
-                  command=self.on_procesar_lote).pack(side=tk.LEFT, padx=(0, 5))
-        
-        # Fila 3: Exportación
-        export_frame = ttk.Frame(control_frame)
-        export_frame.pack(fill=tk.X)
-        
-        ttk.Button(export_frame, text="💾 Guardar JSON", 
-                  command=self.on_guardar_json).pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Button(export_frame, text="📊 Exportar Excel", 
-                  command=self.on_exportar_excel).pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Button(export_frame, text="🗑️ Limpiar", 
-                  command=self.on_limpiar).pack(side=tk.LEFT, padx=(0, 5))
+    def update_status(self, message):
+        """Actualizar mensaje en la barra de estado"""
+        if hasattr(self, 'status_var'):
+            self.status_var.set(message)
+        logger.info(f"Status: {message}")
     
-    def setup_tabs(self):
-        """Configura las pestañas principales"""
-        self.tabs_manager = MainTabs(self.data_panel)
-        self.tabs_manager.pack(fill=tk.BOTH, expand=True)
+    def _on_close(self):
+        """Manejar cierre de la aplicación"""
+        if messagebox.askokcancel("Salir", "¿Estás seguro de que quieres salir?"):
+            try:
+                # Cerrar conexión a la base de datos
+                if self.db_manager:
+                    self.db_manager.close()
+                
+                # Cerrar ventana
+                self.root.destroy()
+                logger.info("Aplicación cerrada correctamente")
+                
+            except Exception as e:
+                logger.error(f"Error al cerrar aplicación: {e}")
+                self.root.destroy()
     
-    def setup_event_handlers(self):
-        """Configura los manejadores de eventos"""
-        # Conectar eventos entre componentes
-        if hasattr(self.navigation_panel, 'on_image_changed'):
-            self.navigation_panel.on_image_changed = self.on_image_changed
+    def show_error(self, title, message):
+        """Mostrar mensaje de error"""
+        messagebox.showerror(title, message, parent=self.root)
+        logger.error(f"{title}: {message}")
     
-    def on_cargar_carpeta(self):
-        """Maneja el evento de cargar carpeta"""
-        try:
-            from ui.dialogs import DialogsManager
-            folder_path = DialogsManager.select_folder()
-            if folder_path:
-                self.navigation_panel.load_folder(folder_path)
-        except Exception as e:
-            logging.error(f"Error cargando carpeta: {e}")
-            DialogsManager.show_error("Error al cargar carpeta", str(e))
-    
-    def on_cargar_imagen(self):
-        """Maneja el evento de cargar imagen individual"""
-        try:
-            from ui.dialogs import DialogsManager
-            image_path = DialogsManager.select_image()
-            if image_path:
-                self.navigation_panel.load_single_image(image_path)
-        except Exception as e:
-            logging.error(f"Error cargando imagen: {e}")
-            DialogsManager.show_error("Error al cargar imagen", str(e))
-    
-    def on_extraer_datos(self):
-        """Maneja el evento de extraer datos"""
-        try:
-            current_image = self.navigation_panel.get_current_image()
-            if not current_image:
-                DialogsManager.show_warning("Primero carga una factura")
-                return
-            
-            # Aquí integraríamos con el procesamiento OCR
-            logging.info(f"Procesando imagen: {current_image}")
-            # TODO: Integrar con OCRProcessor
-            
-        except Exception as e:
-            logging.error(f"Error extrayendo datos: {e}")
-            DialogsManager.show_error("Error al extraer datos", str(e))
-    
-    def on_procesar_lote(self):
-        """Maneja el evento de procesar lote"""
-        try:
-            if not self.navigation_panel.has_images():
-                DialogsManager.show_warning("Primero carga una carpeta con imágenes")
-                return
-            
-            # TODO: Implementar procesamiento por lote
-            logging.info("Iniciando procesamiento por lote...")
-            
-        except Exception as e:
-            logging.error(f"Error en procesamiento por lote: {e}")
-            DialogsManager.show_error("Error en procesamiento por lote", str(e))
-    
-    def on_guardar_json(self):
-        """Maneja el evento de guardar JSON"""
-        try:
-            # TODO: Implementar guardado de JSON
-            logging.info("Guardando datos en JSON...")
-            
-        except Exception as e:
-            logging.error(f"Error guardando JSON: {e}")
-            DialogsManager.show_error("Error al guardar JSON", str(e))
-    
-    def on_exportar_excel(self):
-        """Maneja el evento de exportar a Excel"""
-        try:
-            # TODO: Implementar exportación a Excel
-            logging.info("Exportando a Excel...")
-            
-        except Exception as e:
-            logging.error(f"Error exportando a Excel: {e}")
-            DialogsManager.show_error("Error al exportar a Excel", str(e))
-    
-    def on_limpiar(self):
-        """Maneja el evento de limpiar datos"""
-        try:
-            self.navigation_panel.clear()
-            self.tabs_manager.clear()
-            logging.info("Datos limpiados")
-            
-        except Exception as e:
-            logging.error(f"Error limpiando datos: {e}")
-            DialogsManager.show_error("Error al limpiar datos", str(e))
-    
-    def on_image_changed(self, image_path, image_data):
-        """Maneja el evento de cambio de imagen"""
-        try:
-            # Actualizar la interfaz cuando cambia la imagen
-            self.tabs_manager.clear()
-            logging.info(f"Imagen cambiada: {image_path}")
-            
-        except Exception as e:
-            logging.error(f"Error manejando cambio de imagen: {e}")
+    def show_info(self, title, message):
+        """Mostrar mensaje informativo"""
+        messagebox.showinfo(title, message, parent=self.root)
+        logger.info(f"{title}: {message}")
     
     def run(self):
-        """Inicia la aplicación"""
+        """Ejecutar la aplicación"""
         try:
+            self._setup_window()
+            self._setup_ui()
+            
+            # Actualizar estado inicial
+            self.update_status("Aplicación iniciada - Lista para usar")
+            
+            # Mostrar estadísticas iniciales
+            self._show_initial_stats()
+            
+            # Iniciar loop principal
+            logger.info("Interfaz gráfica iniciada correctamente")
             self.root.mainloop()
+            
         except Exception as e:
-            logging.error(f"Error ejecutando aplicación: {e}")
+            error_msg = f"Error al iniciar interfaz: {str(e)}"
+            logger.critical(error_msg)
+            messagebox.showerror("Error Crítico", error_msg)
             raise
+    
+    def _show_initial_stats(self):
+        """Mostrar estadísticas iniciales"""
+        try:
+            stats = self.db_manager.obtener_estadisticas()
+            if stats:
+                total_facturas = stats.get('total_facturas', 0)
+                total_monetario = stats.get('total_monetario', 0)
+                
+                if total_facturas > 0:
+                    self.update_status(
+                        f"Base de datos cargada: {total_facturas} facturas, "
+                        f"Total: ${total_monetario:,.2f}"
+                    )
+                else:
+                    self.update_status("Base de datos vacía - Comienza agregando facturas")
+            else:
+                self.update_status("Error al cargar estadísticas")
+                
+        except Exception as e:
+            logger.warning(f"Error obteniendo estadísticas iniciales: {e}")
+            self.update_status("Listo - Error cargando estadísticas")
+
+
+if __name__ == "__main__":
+    # Prueba de la ventana principal
+    from database.database_manager import DatabaseManager
+    
+    try:
+        db = DatabaseManager()
+        app = MainWindow(db)
+        app.run()
+    except Exception as e:
+        print(f"Error en prueba: {e}")
