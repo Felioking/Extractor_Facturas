@@ -1,161 +1,110 @@
+# processing/data_extractor.py
 import re
-import logging
-from typing import Dict, Any, List, Tuple, Optional
-from datetime import datetime
+from typing import Dict, List, Optional
+from processing.validator import ValidadorDatos
 
-logger = logging.getLogger(__name__)
-
-class DataExtractor:
+class ExtractorDatos:
     def __init__(self):
-        self.proveedores_frecuentes = {}
-        
-    def extract_data_from_text(self, text: str, image_path: str = None) -> Dict[str, Any]:
-        """
-        Extrae datos estructurados de facturas - VERSIÓN OPTIMIZADA
-        """
-        print("🔧 [EXTRACTOR] Iniciando extracción optimizada...")
-        
-        datos_extraidos = {
-            'rnc_emisor': '',
-            'nombre_emisor': '',
-            'comprobante': '',
-            'fecha_emision': '',
-            'subtotal': None,
-            'impuestos': None,
-            'descuentos': None,
-            'total': None,
-            'total_pagar': None,
-            'archivo_origen': image_path,
-            'fecha_procesamiento': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            'confianza': 0,
-            'texto_completo': text
-        }
-        
-        try:
-            # 1. EXTRAER RNC
-            datos_extraidos['rnc_emisor'] = self.buscar_rnc(text)
-            if datos_extraidos['rnc_emisor']:
-                print(f"✅ [EXTRACTOR] RNC encontrado: {datos_extraidos['rnc_emisor']}")
-            
-            # 2. EXTRAER NOMBRE EMISOR
-            datos_extraidos['nombre_emisor'] = self.extraer_nombre_emisor(text)
-            if datos_extraidos['nombre_emisor']:
-                print(f"✅ [EXTRACTOR] Emisor: {datos_extraidos['nombre_emisor']}")
-            
-            # 3. EXTRAER FECHA
-            datos_extraidos['fecha_emision'] = self.buscar_fecha_emision(text)
-            if datos_extraidos['fecha_emision']:
-                print(f"✅ [EXTRACTOR] Fecha: {datos_extraidos['fecha_emision']}")
-            
-            # 4. EXTRAER MONTOS
-            self.extraer_montos_desde_texto(text, datos_extraidos)
-            
-            # Mostrar montos encontrados
-            montos_encontrados = []
-            for key in ['subtotal', 'impuestos', 'total', 'total_pagar']:
-                if datos_extraidos.get(key):
-                    montos_encontrados.append(f"{key}: {datos_extraidos[key]}")
-            
-            if montos_encontrados:
-                print(f"✅ [EXTRACTOR] Montos: {', '.join(montos_encontrados)}")
-            
-            # 5. CALCULAR CONFIANZA
-            datos_extraidos['confianza'] = self.calcular_confianza_extraccion(datos_extraidos)
-            print(f"📊 [EXTRACTOR] Confianza: {datos_extraidos['confianza']}%")
-            
-            logger.info("Extracción de datos completada")
-            
-        except Exception as e:
-            logger.error(f"Error en extracción de datos: {e}")
-            print(f"❌ [EXTRACTOR] Error: {e}")
-            
-        return datos_extraidos
+        self.validador = ValidadorDatos()
+        self.patrones = self._construir_patrones()
     
-    def buscar_rnc(self, texto: str) -> str:
-        """Busca RNC con múltiples patrones"""
-        patrones_rnc = [
-            r'RNC[\s:]*([0-9]{9}|[0-9]{3}-[0-9]{7}-[0-9]{1})',
-            r'R\.N\.C\.[\s:]*([0-9]{9}|[0-9]{3}-[0-9]{7}-[0-9]{1})',
-            r'IDENTIFICACION[\s:]*([0-9]{9}|[0-9]{3}-[0-9]{7}-[0-9]{1})',
-        ]
-        
-        for patron in patrones_rnc:
-            match = re.search(patron, texto, re.IGNORECASE)
-            if match:
-                rnc = re.sub(r'[^\\d]', '', match.group(1))
-                return rnc
-        return ""
-    
-    def extraer_nombre_emisor(self, texto: str) -> str:
-        """Extrae nombre del emisor"""
-        lineas = texto.split('\\n')
-        
-        # Buscar después de palabras clave
-        palabras_clave = ['Fideicomiso', 'Empresa', 'Compañía', 'S.A.', 'S.R.L.']
-        
-        for i, linea in enumerate(lineas):
-            linea_limpia = linea.strip()
-            if any(palabra in linea_limpia for palabra in palabras_clave) and len(linea_limpia) > 5:
-                return linea_limpia
-        
-        # Si no encuentra, tomar primera línea significativa
-        for linea in lineas:
-            linea_limpia = linea.strip()
-            if len(linea_limpia) > 10 and not re.match(r'^[0-9\s\W]+$', linea_limpia):
-                return linea_limpia
-        
-        return ""
-    
-    def buscar_fecha_emision(self, texto: str) -> str:
-        """Busca fecha de emisión"""
-        patrones_fecha = [
-            r'Fecha[\s:/]*([0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4})',
-            r'Emision[\s:/]*([0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4})',
-            r'([0-9]{1,2}/[0-9]{1,2}/[0-9]{2,4})'
-        ]
-        
-        for patron in patrones_fecha:
-            match = re.search(patron, texto, re.IGNORECASE)
-            if match:
-                return match.group(1)
-        return ""
-    
-    def extraer_montos_desde_texto(self, texto: str, datos: Dict[str, Any]):
-        """Extrae montos del texto"""
-        patrones_montos = {
-            'subtotal': [
-                r'Subtotal[\s\\$RD]*([0-9,]+\\.?[0-9]*)',
-                r'SUB-TOTAL[\s\\$RD]*([0-9,]+\\.?[0-9]*)'
+    def _construir_patrones(self) -> Dict[str, List[Dict]]:
+        return {
+            'nit': [
+                {
+                    'patron': r'(NIT|Nit|nit)[\s:]*([0-9.,-]+)',
+                    'grupo': 2,
+                    'palabras_contexto': ['NIT', 'Nit', 'nit', 'identificación']
+                },
+                {
+                    'patron': r'(\d{5,15})',
+                    'grupo': 1,
+                    'palabras_contexto': ['NIT', 'Nit', 'IDENTIF'],
+                    'validar_contexto': True
+                }
             ],
-            'impuestos': [
-                r'ITBIS[\s\\$RD]*([0-9,]+\\.?[0-9]*)',
-                r'IMPUESTO[\s\\$RD]*([0-9,]+\\.?[0-9]*)'
+            'fecha': [
+                {
+                    'patron': r'(Fecha|FECHA|fecha)[\s:]*(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})',
+                    'grupo': 2
+                },
+                {
+                    'patron': r'(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})',
+                    'grupo': 1,
+                    'palabras_contexto': ['Fecha', 'Emisión', 'Factura']
+                }
             ],
             'total': [
-                r'Total[\s\\$RD]*([0-9,]+\\.?[0-9]*)',
-                r'IMPORTE[\s\\$RD]*([0-9,]+\\.?[0-9]*)',
-                r'MONTO[\s\\$RD]*([0-9,]+\\.?[0-9]*)'
+                {
+                    'patron': r'(Total|TOTAL|total)[\s:]*[\$]?\s*([0-9.,]+)',
+                    'grupo': 2
+                },
+                {
+                    'patron': r'(Gran Total|TOTAL GENERAL)[\s:]*[\$]?\s*([0-9.,]+)',
+                    'grupo': 2
+                }
+            ],
+            'subtotal': [
+                {
+                    'patron': r'(Subtotal|SUBOTAL|subtotal)[\s:]*[\$]?\s*([0-9.,]+)',
+                    'grupo': 2
+                }
+            ],
+            'numero_factura': [
+                {
+                    'patron': r'(No\.?|Número|NUMERO)[\s:]*([0-9-]+)',
+                    'grupo': 2
+                },
+                {
+                    'patron': r'(Factura|FACTURA)[\s:]*([0-9-]+)',
+                    'grupo': 2
+                }
             ]
         }
-        
-        for campo, patrones in patrones_montos.items():
-            for patron in patrones:
-                match = re.search(patron, texto, re.IGNORECASE)
-                if match:
-                    try:
-                        monto_limpio = re.sub(r'[^0-9.]', '', match.group(1).replace(',', ''))
-                        datos[campo] = float(monto_limpio)
-                        break
-                    except (ValueError, TypeError):
-                        pass
     
-    def calcular_confianza_extraccion(self, datos: Dict[str, Any]) -> float:
-        """Calcula confianza de la extracción"""
-        campos = ['rnc_emisor', 'nombre_emisor', 'fecha_emision', 'total']
-        campos_encontrados = sum(1 for campo in campos if datos.get(campo))
+    def extraer_datos(self, texto: str) -> Dict[str, Any]:
+        datos_extraidos = {}
         
-        confianza = (campos_encontrados / len(campos)) * 100
-        return round(confianza, 2)
-
-# Instancia global
-data_extractor = DataExtractor()
+        for campo, patrones in self.patrones.items():
+            for config_patron in patrones:
+                valor = self._extraer_con_patron(texto, config_patron)
+                if valor:
+                    valor_validado = self._validar_campo(campo, valor)
+                    if valor_validado:
+                        datos_extraidos[campo] = valor_validado
+                        break
+        
+        return datos_extraidos
+    
+    def _extraer_con_patron(self, texto: str, config_patron: Dict) -> Optional[str]:
+        coincidencias = re.finditer(config_patron['patron'], texto, re.IGNORECASE | re.MULTILINE)
+        
+        for coincidencia in coincidencias:
+            valor = coincidencia.group(config_patron['grupo'])
+            
+            if config_patron.get('validar_contexto'):
+                if not self._tiene_contexto_valido(texto, coincidencia.start(), config_patron.get('palabras_contexto', [])):
+                    continue
+            
+            return valor
+            
+        return None
+    
+    def _tiene_contexto_valido(self, texto: str, posicion: int, palabras_contexto: List[str]) -> bool:
+        inicio = max(0, posicion - 100)
+        fin = min(len(texto), posicion + 100)
+        area_contexto = texto[inicio:fin]
+        
+        return any(palabra.lower() in area_contexto.lower() for palabra in palabras_contexto)
+    
+    def _validar_campo(self, campo: str, valor: str) -> Any:
+        validadores = {
+            'nit': self.validador.validar_y_corregir_nit,
+            'fecha': self.validador.validar_y_corregir_fecha,
+            'total': self.validador.validar_y_corregir_monto,
+            'subtotal': self.validador.validar_y_corregir_monto,
+            'numero_factura': lambda x: x.strip() if x.strip() else None
+        }
+        
+        validador = validadores.get(campo)
+        return validador(valor) if validador else valor
