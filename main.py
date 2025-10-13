@@ -4,6 +4,8 @@ import logging
 import sys
 import os
 
+from typing import Any
+
 # Agregar el directorio actual al path para imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 

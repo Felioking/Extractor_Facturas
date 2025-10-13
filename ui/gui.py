@@ -1,4 +1,4 @@
-# ui/gui.py
+# ui/gui.py - VERSIÓN COMPLETA CORREGIDA
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
 from PIL import Image, ImageTk
@@ -342,7 +342,7 @@ class ExtractorFacturasApp:
     # ========== MÉTODOS DE PROCESAMIENTO ==========
     
     def extraer_datos_factura(self):
-        """Extrae datos de la factura actual"""
+        """Extrae datos de la factura actual - VERSIÓN MEJORADA"""
         if not self.ruta_imagen:
             messagebox.showwarning("Advertencia", "Primero carga una factura")
             return
@@ -358,8 +358,19 @@ class ExtractorFacturasApp:
             self.texto_completo.delete(1.0, tk.END)
             self.texto_completo.insert(tk.END, texto)
             
-            # Extraer datos estructurados
-            self.datos_extraidos = self.data_extractor.extract_data_from_text(texto, self.ruta_imagen)
+            # 🔥 EXTRAER DATOS CON EL NUEVO SISTEMA
+            print("\n" + "="*60)
+            print("🚀 INICIANDO EXTRACCIÓN CON SISTEMA ML MEJORADO")
+            print("="*60)
+            
+            # Usar el nuevo método de extracción
+            self.datos_extraidos = self.data_extractor.extraer_datos(texto)
+            
+            # 🔥 DEBUG: Mostrar estructura completa recibida
+            print("\n📦 ESTRUCTURA COMPLETA RECIBIDA DEL BACKEND:")
+            for key, value in self.datos_extraidos.items():
+                if not key.startswith('confianza_') and key not in ['calidad_texto', 'estado_calidad', 'metodo_extraccion']:
+                    print(f"   📬 {key}: {value}")
             
             # Llenar formularios
             self.llenar_formularios()
@@ -368,8 +379,20 @@ class ExtractorFacturasApp:
             self.validar_y_mostrar_resultados()
             
             # Guardar en base de datos automáticamente
-            if self.datos_extraidos.get('comprobante'):
-                resultado, mensaje = self.db_manager.guardar_factura(self.datos_extraidos)
+            comprobante = self._obtener_valor_mapeado(['numero_factura', 'numero_comprobante', 'ticket', 'ncf'])
+            if comprobante:
+                # Preparar datos para la base de datos
+                datos_db = {
+                    'rnc_emisor': self._obtener_valor_mapeado(['nit', 'rnc', 'numero_documento']),
+                    'nombre_emisor': self._obtener_valor_mapeado(['razon_social', 'nombre_empresa', 'empresa']),
+                    'comprobante': comprobante,
+                    'fecha_emision': self._obtener_valor_mapeado(['fecha', 'fecha_emision']),
+                    'total': self._obtener_valor_mapeado(['total', 'monto_total', 'importe']),
+                    'subtotal': self._obtener_valor_mapeado(['subtotal']),
+                    'impuestos': self._obtener_valor_mapeado(['itbis', 'impuestos', 'iva'])
+                }
+                
+                resultado, mensaje = self.db_manager.guardar_factura(datos_db)
                 if resultado:
                     logger.info("Datos guardados en base de datos")
                     # Actualizar lista de proveedores
@@ -387,19 +410,76 @@ class ExtractorFacturasApp:
             self.root.config(cursor="")
     
     def llenar_formularios(self):
-        """Llena los formularios con los datos extraídos"""
-        for key, entry in self.entries_fiscal.items():
-            valor = self.datos_extraidos.get(key, "")
-            entry.delete(0, tk.END)
-            entry.insert(0, str(valor))
+        """Llena los formularios con los datos extraídos - VERSIÓN CORREGIDA"""
         
-        for key, entry in self.entries_montos.items():
-            valor = self.datos_extraidos.get(key, "")
-            entry.delete(0, tk.END)
-            if isinstance(valor, (int, float)):
-                entry.insert(0, f"RD$ {valor:,.2f}")
+        # 🔥 MAPEO DE CAMPOS: Lo que envía el backend vs lo que espera la UI
+        mapeo_campos = {
+            # Información Fiscal
+            'rnc_emisor': ['nit', 'rnc', 'numero_documento', 'identificacion', 'documento'],
+            'nombre_emisor': ['razon_social', 'nombre_empresa', 'empresa', 'cliente', 'operador'],
+            'comprobante': ['numero_factura', 'numero_comprobante', 'ticket', 'numero', 'ncf'],
+            'fecha_emision': ['fecha', 'fecha_emision', 'fecha_documento'],
+            'fecha_vencimiento': ['fecha_vencimiento'],
+            
+            # Montos
+            'subtotal': ['subtotal'],
+            'impuestos': ['itbis', 'impuestos', 'iva'],
+            'descuentos': ['descuentos'],
+            'total': ['total', 'monto_total', 'importe', 'monto', 'valor'],
+            'total_pagar': ['total_pagar']
+        }
+        
+        # Llenar campos fiscales
+        for campo_ui, posibles_campos in mapeo_campos.items():
+            if campo_ui in self.entries_fiscal:
+                valor = self._obtener_valor_mapeado(posibles_campos)
+                self.entries_fiscal[campo_ui].delete(0, tk.END)
+                self.entries_fiscal[campo_ui].insert(0, str(valor))
+        
+        # Llenar campos de montos
+        for campo_ui, posibles_campos in mapeo_campos.items():
+            if campo_ui in self.entries_montos:
+                valor = self._obtener_valor_mapeado(posibles_campos)
+                self.entries_montos[campo_ui].delete(0, tk.END)
+                if isinstance(valor, (int, float)):
+                    self.entries_montos[campo_ui].insert(0, f"RD$ {valor:,.2f}")
+                else:
+                    self.entries_montos[campo_ui].insert(0, str(valor))
+        
+        # Mostrar en consola qué campos se encontraron
+        self._mostrar_campos_encontrados()
+
+    def _obtener_valor_mapeado(self, posibles_campos):
+        """Obtiene el valor del primer campo que exista en la lista"""
+        for campo in posibles_campos:
+            if campo in self.datos_extraidos and self.datos_extraidos[campo]:
+                return self.datos_extraidos[campo]
+        return ""
+
+    def _mostrar_campos_encontrados(self):
+        """Muestra en consola qué campos se encontraron y mapearon"""
+        print("\n🎯 CAMPOS MAPEADOS EN UI:")
+        
+        campos_mapeados = {
+            'RNC Emisor': self._obtener_valor_mapeado(['nit', 'rnc', 'numero_documento']),
+            'Nombre Emisor': self._obtener_valor_mapeado(['razon_social', 'nombre_empresa', 'empresa']),
+            'Comprobante': self._obtener_valor_mapeado(['numero_factura', 'numero_comprobante', 'ticket']),
+            'Fecha Emisión': self._obtener_valor_mapeado(['fecha', 'fecha_emision']),
+            'Total': self._obtener_valor_mapeado(['total', 'monto_total', 'importe'])
+        }
+        
+        for campo, valor in campos_mapeados.items():
+            if valor:
+                print(f"   ✅ {campo}: {valor}")
             else:
-                entry.insert(0, str(valor))
+                print(f"   ❌ {campo}: NO ENCONTRADO")
+        
+        # Mostrar campos adicionales que podrían interesar
+        campos_adicionales = ['vehiculo', 'estacion', 'hora', 'subtotal', 'itbis']
+        print("\n📋 CAMPOS ADICIONALES:")
+        for campo in campos_adicionales:
+            if campo in self.datos_extraidos and self.datos_extraidos[campo]:
+                print(f"   📌 {campo}: {self.datos_extraidos[campo]}")
     
     def limpiar_formularios(self):
         """Limpia todos los formularios"""
@@ -418,7 +498,7 @@ class ExtractorFacturasApp:
     
     def validar_ncf(self):
         """Valida el NCF actual"""
-        ncf = self.datos_extraidos.get('comprobante', '')
+        ncf = self._obtener_valor_mapeado(['numero_factura', 'numero_comprobante', 'ticket', 'ncf'])
         if not ncf:
             messagebox.showwarning("Advertencia", "No hay NCF para validar")
             return
@@ -440,7 +520,7 @@ class ExtractorFacturasApp:
     
     def verificar_base_datos(self):
         """Verifica si el comprobante existe en la base de datos"""
-        ncf = self.datos_extraidos.get('comprobante', '')
+        ncf = self._obtener_valor_mapeado(['numero_factura', 'numero_comprobante', 'ticket', 'ncf'])
         if not ncf:
             messagebox.showwarning("Advertencia", "No hay comprobante para verificar")
             return
@@ -458,31 +538,50 @@ class ExtractorFacturasApp:
             self.label_estado_validacion.config(text="NUEVO", foreground="green")
     
     def validar_y_mostrar_resultados(self):
-        """Realiza validaciones y muestra resultados"""
+        """Realiza validaciones y muestra resultados - VERSIÓN ACTUALIZADA"""
         self.texto_validacion.delete(1.0, tk.END)
         
-        ncf = self.datos_extraidos.get('comprobante', '')
+        # Obtener comprobante usando el mapeo
+        ncf = self._obtener_valor_mapeado(['numero_factura', 'numero_comprobante', 'ticket', 'ncf'])
+        rnc = self._obtener_valor_mapeado(['nit', 'rnc', 'numero_documento'])
+        
+        self.texto_validacion.insert(tk.END, "🔍 RESULTADOS DE VALIDACIÓN\n")
+        self.texto_validacion.insert(tk.END, "=" * 40 + "\n\n")
+        
         if ncf:
             ncf_valido, mensaje_ncf = self.data_extractor.validar_ncf_formato(ncf)
-            self.texto_validacion.insert(tk.END, f"✅ NCF: {mensaje_ncf}\n\n")
+            self.texto_validacion.insert(tk.END, f"📄 COMPROBANTE: {ncf}\n")
+            self.texto_validacion.insert(tk.END, f"   {mensaje_ncf}\n\n")
             
             if ncf_valido:
                 self.label_estado_validacion.config(text="VÁLIDO", foreground="green")
             else:
                 self.label_estado_validacion.config(text="INVÁLIDO", foreground="red")
         else:
-            self.texto_validacion.insert(tk.END, "❌ No se encontró NCF\n\n")
+            self.texto_validacion.insert(tk.END, "❌ No se encontró comprobante\n\n")
             self.label_estado_validacion.config(text="INCOMPLETO", foreground="orange")
         
-        if ncf and self.db_manager.verificar_comprobante_existente(ncf):
-            self.texto_validacion.insert(tk.END, "⚠️ ADVERTENCIA: Este comprobante ya existe en la base de datos\n\n")
-        
-        rnc = self.datos_extraidos.get('rnc_emisor', '')
         if rnc:
-            if len(rnc) in [9, 11]:
-                self.texto_validacion.insert(tk.END, f"✅ RNC: Formato válido ({len(rnc)} dígitos)\n\n")
+            if len(str(rnc)) in [9, 11]:
+                self.texto_validacion.insert(tk.END, f"🏢 RNC: {rnc} (Formato válido - {len(str(rnc))} dígitos)\n\n")
             else:
-                self.texto_validacion.insert(tk.END, f"⚠️ RNC: Longitud inusual ({len(rnc)} dígitos)\n\n")
+                self.texto_validacion.insert(tk.END, f"⚠️ RNC: {rnc} (Longitud inusual - {len(str(rnc))} dígitos)\n\n")
+        else:
+            self.texto_validacion.insert(tk.END, "❌ No se encontró RNC\n\n")
+        
+        # Verificar duplicados
+        if ncf and self.db_manager.verificar_comprobante_existente(ncf):
+            self.texto_validacion.insert(tk.END, "🚨 ADVERTENCIA: Este comprobante ya existe en la base de datos\n\n")
+        
+        # Mostrar calidad de extracción
+        if 'calidad_texto' in self.datos_extraidos:
+            calidad = self.datos_extraidos['calidad_texto']
+            puntuacion = self.datos_extraidos.get('puntuacion_calidad_texto', 'N/A')
+            self.texto_validacion.insert(tk.END, f"📊 Calidad de extracción: {calidad} ({puntuacion}/10)\n")
+        
+        if 'confianza_clasificacion' in self.datos_extraidos:
+            confianza = self.datos_extraidos['confianza_clasificacion']
+            self.texto_validacion.insert(tk.END, f"🎯 Confianza de clasificación: {confianza:.2f}\n")
 
     # ========== MÉTODOS ADICIONALES ==========
     
@@ -597,15 +696,23 @@ class ExtractorFacturasApp:
                     _, texto = self.image_processor.preprocess_image(ruta_imagen)
                     
                     # Extraer datos
-                    datos = self.data_extractor.extract_data_from_text(texto, ruta_imagen)
+                    datos = self.data_extractor.extraer_datos(texto)
                     datos['archivo'] = ruta_imagen
                     datos['fecha_procesamiento'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     
                     resultados.append(datos)
                     
                     # Guardar en base de datos si tiene comprobante
-                    if datos.get('comprobante'):
-                        self.db_manager.guardar_factura(datos)
+                    comprobante = self._obtener_valor_mapeado(['numero_factura', 'numero_comprobante', 'ticket', 'ncf'])
+                    if comprobante:
+                        datos_db = {
+                            'rnc_emisor': self._obtener_valor_mapeado(['nit', 'rnc', 'numero_documento']),
+                            'nombre_emisor': self._obtener_valor_mapeado(['razon_social', 'nombre_empresa', 'empresa']),
+                            'comprobante': comprobante,
+                            'fecha_emision': self._obtener_valor_mapeado(['fecha', 'fecha_emision']),
+                            'total': self._obtener_valor_mapeado(['total', 'monto_total', 'importe'])
+                        }
+                        self.db_manager.guardar_factura(datos_db)
                     
                 except Exception as e:
                     logger.error(f"Error procesando {ruta_imagen}: {e}")
@@ -730,3 +837,11 @@ class ExtractorFacturasApp:
         self.lista_imagenes = []
         self.indice_actual = -1
         self.actualizar_navegacion()
+
+def main():
+    root = tk.Tk()
+    app = ExtractorFacturasApp(root)
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
