@@ -243,3 +243,6 @@ class DatabaseManager:
         if self.conn:
             self.conn.close()
             logger.info("Conexión a base de datos cerrada")
+
+# Instancia global para compatibilidad
+db_manager = DatabaseManager()
