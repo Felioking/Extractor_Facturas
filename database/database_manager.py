@@ -1,289 +1,315 @@
-"""
-Módulo de base de datos seguro para el extractor de facturas
-Protege contra inyección SQL usando parámetros preparados
-"""
 import sqlite3
 import logging
-from pathlib import Path
-from typing import List, Dict, Optional, Tuple
-import sys
-import os
-
-# Agregar el directorio raíz al path para importar config
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import config
+from datetime import datetime
+from typing import List, Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
 class DatabaseManager:
-    """Gestor seguro de base de datos para facturas"""
-    
-    def __init__(self, db_path: str = None):
-        self.db_path = db_path or config.DATABASE_PATH
+    def __init__(self, db_path: str = 'facturas.db'):
+        self.db_path = db_path
         self.conn = None
-        self._initialize_database()
+        self.cursor = None
+        self.initialize_database()
     
-    def _initialize_database(self):
-        """Inicializar la base de datos y crear tablas si no existen"""
+    def initialize_database(self):
+        """Inicializa la base de datos con todas las tablas necesarias"""
         try:
             self.conn = sqlite3.connect(self.db_path)
-            self.conn.row_factory = sqlite3.Row  # Para acceso por nombre de columna
-            self._create_tables()
-            logger.info(f"Base de datos inicializada: {self.db_path}")
-        except sqlite3.Error as e:
+            self.cursor = self.conn.cursor()
+            
+            # Crear tabla de facturas (expandida)
+            self.cursor.execute('''
+                CREATE TABLE IF NOT EXISTS facturas (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    rnc_emisor TEXT,
+                    nombre_emisor TEXT,
+                    comprobante TEXT UNIQUE,
+                    fecha_emision TEXT,
+                    subtotal REAL,
+                    impuestos REAL,
+                    descuentos REAL,
+                    total REAL,
+                    archivo_origen TEXT,
+                    fecha_procesamiento TEXT,
+                    confianza REAL,
+                    estado_validacion TEXT DEFAULT 'PENDIENTE'
+                )
+            ''')
+            
+            # Crear tabla de proveedores (nueva)
+            self.cursor.execute('''
+                CREATE TABLE IF NOT EXISTS proveedores (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    rnc TEXT UNIQUE,
+                    nombre TEXT,
+                    frecuencia INTEGER DEFAULT 1,
+                    ultima_vez TEXT,
+                    fecha_registro TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            # Crear tabla de configuración
+            self.cursor.execute('''
+                CREATE TABLE IF NOT EXISTS configuracion (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    clave TEXT UNIQUE,
+                    valor TEXT,
+                    descripcion TEXT
+                )
+            ''')
+            
+            # Insertar configuraciones por defecto
+            configs = [
+                ('ruta_tesseract', r'C:\Program Files\Tesseract-OCR\tesseract.exe', 'Ruta de Tesseract OCR'),
+                ('idioma_ocr', 'spa', 'Idioma para OCR'),
+                ('confianza_minima', '70', 'Confianza mínima para OCR'),
+            ]
+            
+            self.cursor.executemany('''
+                INSERT OR IGNORE INTO configuracion (clave, valor, descripcion)
+                VALUES (?, ?, ?)
+            ''', configs)
+            
+            self.conn.commit()
+            logger.info("Base de datos inicializada correctamente")
+            
+        except Exception as e:
             logger.error(f"Error inicializando base de datos: {e}")
             raise
     
-    def _create_tables(self):
-        """Crear las tablas necesarias si no existen"""
-        create_table_query = """
-        CREATE TABLE IF NOT EXISTS facturas (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT NOT NULL,
-            rfc TEXT NOT NULL,
-            fecha TEXT,
-            total REAL NOT NULL,
-            uuid TEXT UNIQUE,
-            archivo_origen TEXT,
-            fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-        """
-        
+    def guardar_factura(self, datos_factura: Dict[str, Any]) -> tuple[bool, str]:
+        """Guarda una factura en la base de datos"""
         try:
-            cursor = self.conn.cursor()
-            cursor.execute(create_table_query)
-            self.conn.commit()
-            logger.info("Tabla 'facturas' verificada/creada correctamente")
-        except sqlite3.Error as e:
-            logger.error(f"Error creando tabla: {e}")
-            raise
-    
-    def insertar_factura(self, factura_data: Dict) -> bool:
-        """
-        Insertar una nueva factura de forma segura
-        
-        Args:
-            factura_data: Diccionario con datos de la factura
+            # Verificar si el comprobante ya existe
+            if datos_factura.get('comprobante'):
+                existe = self.verificar_comprobante_existente(datos_factura['comprobante'])
+                if existe:
+                    return False, "El comprobante ya existe en la base de datos"
             
-        Returns:
-            bool: True si fue exitoso, False si hubo error
-        """
-        required_fields = ['nombre', 'rfc', 'total']
-        for field in required_fields:
-            if field not in factura_data or not factura_data[field]:
-                logger.error(f"Campo requerido faltante: {field}")
-                return False
-        
-        query = """
-        INSERT OR REPLACE INTO facturas 
-        (nombre, rfc, fecha, total, uuid, archivo_origen)
-        VALUES (?, ?, ?, ?, ?, ?)
-        """
-        
-        try:
-            cursor = self.conn.cursor()
-            cursor.execute(query, (
-                factura_data.get('nombre', '').strip(),
-                factura_data.get('rfc', '').strip().upper(),
-                factura_data.get('fecha', '').strip(),
-                float(factura_data.get('total', 0)),
-                factura_data.get('uuid', '').strip(),
-                factura_data.get('archivo_origen', '').strip()
+            # Insertar factura
+            self.cursor.execute('''
+                INSERT INTO facturas 
+                (rnc_emisor, nombre_emisor, comprobante, fecha_emision, 
+                 subtotal, impuestos, descuentos, total, archivo_origen, 
+                 fecha_procesamiento, confianza, estado_validacion)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                datos_factura.get('rnc_emisor'),
+                datos_factura.get('nombre_emisor'),
+                datos_factura.get('comprobante'),
+                datos_factura.get('fecha_emision'),
+                datos_factura.get('subtotal'),
+                datos_factura.get('impuestos'),
+                datos_factura.get('descuentos'),
+                datos_factura.get('total'),
+                datos_factura.get('archivo_origen'),
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                datos_factura.get('confianza', 0),
+                datos_factura.get('estado_validacion', 'PENDIENTE')
             ))
+            
+            # Actualizar proveedor si hay RNC y nombre
+            if datos_factura.get('rnc_emisor') and datos_factura.get('nombre_emisor'):
+                self.actualizar_proveedor(
+                    datos_factura['rnc_emisor'], 
+                    datos_factura['nombre_emisor']
+                )
+            
             self.conn.commit()
-            logger.info(f"Factura insertada: {factura_data.get('uuid', 'N/A')}")
-            return True
-        except sqlite3.Error as e:
-            logger.error(f"Error insertando factura: {e}")
-            return False
-        except ValueError as e:
-            logger.error(f"Error en formato de datos: {e}")
-            return False
+            logger.info(f"Factura guardada: {datos_factura.get('comprobante', 'N/A')}")
+            return True, "Factura guardada correctamente"
+            
+        except Exception as e:
+            logger.error(f"Error guardando factura: {e}")
+            return False, f"Error guardando factura: {str(e)}"
     
-    def buscar_facturas(self, campo: str = None, valor: str = None) -> List[Dict]:
-        """
-        Buscar facturas de forma segura usando parámetros preparados
-        
-        Args:
-            campo: Campo por el cual buscar (nombre, rfc, uuid)
-            valor: Valor a buscar
-            
-        Returns:
-            List[Dict]: Lista de facturas encontradas
-        """
-        # Campos permitidos para búsqueda (prevenir inyección SQL)
-        campos_permitidos = ['nombre', 'rfc', 'uuid', 'fecha']
-        
-        if campo and valor:
-            if campo not in campos_permitidos:
-                logger.warning(f"Campo no permitido para búsqueda: {campo}")
-                return []
-            
-            query = f"SELECT * FROM facturas WHERE {campo} LIKE ? ORDER BY fecha_creacion DESC"
-            params = (f'%{valor}%',)
-        else:
-            query = "SELECT * FROM facturas ORDER BY fecha_creacion DESC"
-            params = ()
-        
+    def actualizar_proveedor(self, rnc: str, nombre: str):
+        """Actualiza o crea un proveedor en la base de datos"""
         try:
-            cursor = self.conn.cursor()
-            cursor.execute(query, params)
-            rows = cursor.fetchall()
+            # Verificar si el proveedor existe
+            self.cursor.execute(
+                "SELECT frecuencia FROM proveedores WHERE rnc = ?", 
+                (rnc,)
+            )
+            resultado = self.cursor.fetchone()
             
-            # Convertir sqlite3.Row a dict
-            facturas = [dict(row) for row in rows]
-            logger.info(f"Búsqueda encontrada: {len(facturas)} facturas")
-            return facturas
-        except sqlite3.Error as e:
-            logger.error(f"Error buscando facturas: {e}")
+            if resultado:
+                # Actualizar frecuencia
+                nueva_frecuencia = resultado[0] + 1
+                self.cursor.execute('''
+                    UPDATE proveedores 
+                    SET frecuencia = ?, ultima_vez = ?, nombre = ?
+                    WHERE rnc = ?
+                ''', (
+                    nueva_frecuencia, 
+                    datetime.now().strftime("%Y-%m-%d"),
+                    nombre,
+                    rnc
+                ))
+            else:
+                # Insertar nuevo proveedor
+                self.cursor.execute('''
+                    INSERT INTO proveedores (rnc, nombre, ultima_vez)
+                    VALUES (?, ?, ?)
+                ''', (
+                    rnc, 
+                    nombre, 
+                    datetime.now().strftime("%Y-%m-%d")
+                ))
+            
+            self.conn.commit()
+            logger.debug(f"Proveedor actualizado: {nombre} ({rnc})")
+            
+        except Exception as e:
+            logger.error(f"Error actualizando proveedor: {e}")
+    
+    def obtener_proveedores_frecuentes(self, limite: int = 10) -> List[Dict]:
+        """Obtiene los proveedores más frecuentes"""
+        try:
+            self.cursor.execute('''
+                SELECT rnc, nombre, frecuencia, ultima_vez
+                FROM proveedores 
+                ORDER BY frecuencia DESC 
+                LIMIT ?
+            ''', (limite,))
+            
+            proveedores = []
+            for row in self.cursor.fetchall():
+                proveedores.append({
+                    'rnc': row[0],
+                    'nombre': row[1],
+                    'frecuencia': row[2],
+                    'ultima_vez': row[3]
+                })
+            
+            return proveedores
+            
+        except Exception as e:
+            logger.error(f"Error obteniendo proveedores frecuentes: {e}")
             return []
     
-    def obtener_todas_facturas(self) -> List[Dict]:
-        """Obtener todas las facturas de forma segura"""
-        return self.buscar_facturas()
-    
-    def obtener_factura_por_id(self, factura_id: int) -> Optional[Dict]:
-        """Obtener una factura por ID de forma segura"""
-        query = "SELECT * FROM facturas WHERE id = ?"
-        
+    def verificar_comprobante_existente(self, comprobante: str) -> bool:
+        """Verifica si un comprobante ya existe en la base de datos"""
         try:
-            cursor = self.conn.cursor()
-            cursor.execute(query, (factura_id,))
-            row = cursor.fetchone()
-            return dict(row) if row else None
-        except sqlite3.Error as e:
-            logger.error(f"Error obteniendo factura por ID {factura_id}: {e}")
-            return None
-    
-    def actualizar_factura(self, factura_id: int, factura_data: Dict) -> bool:
-        """
-        Actualizar una factura existente de forma segura
-        
-        Args:
-            factura_id: ID de la factura a actualizar
-            factura_data: Nuevos datos de la factura
+            self.cursor.execute(
+                "SELECT COUNT(*) FROM facturas WHERE comprobante = ?", 
+                (comprobante,)
+            )
+            resultado = self.cursor.fetchone()
+            return resultado[0] > 0
             
-        Returns:
-            bool: True si fue exitoso
-        """
-        # Solo permitir actualizar campos específicos
-        campos_permitidos = ['nombre', 'rfc', 'fecha', 'total', 'uuid']
-        update_fields = []
-        params = []
-        
-        for campo in campos_permitidos:
-            if campo in factura_data:
-                update_fields.append(f"{campo} = ?")
-                params.append(factura_data[campo])
-        
-        if not update_fields:
-            logger.warning("No hay campos válidos para actualizar")
-            return False
-        
-        params.append(factura_id)
-        query = f"UPDATE facturas SET {', '.join(update_fields)} WHERE id = ?"
-        
-        try:
-            cursor = self.conn.cursor()
-            cursor.execute(query, params)
-            self.conn.commit()
-            logger.info(f"Factura {factura_id} actualizada correctamente")
-            return cursor.rowcount > 0
-        except sqlite3.Error as e:
-            logger.error(f"Error actualizando factura {factura_id}: {e}")
+        except Exception as e:
+            logger.error(f"Error verificando comprobante: {e}")
             return False
     
-    def eliminar_factura(self, factura_id: int) -> bool:
-        """Eliminar una factura de forma segura"""
-        query = "DELETE FROM facturas WHERE id = ?"
-        
+    def obtener_todas_facturas(self, limite: int = 100) -> List[Dict]:
+        """Obtiene todas las facturas de la base de datos"""
         try:
-            cursor = self.conn.cursor()
-            cursor.execute(query, (factura_id,))
-            self.conn.commit()
-            deleted = cursor.rowcount > 0
-            if deleted:
-                logger.info(f"Factura {factura_id} eliminada")
-            else:
-                logger.warning(f"Factura {factura_id} no encontrada para eliminar")
-            return deleted
-        except sqlite3.Error as e:
-            logger.error(f"Error eliminando factura {factura_id}: {e}")
-            return False
+            self.cursor.execute('''
+                SELECT * FROM facturas 
+                ORDER BY fecha_procesamiento DESC 
+                LIMIT ?
+            ''', (limite,))
+            
+            facturas = []
+            column_names = [description[0] for description in self.cursor.description]
+            
+            for row in self.cursor.fetchall():
+                factura = dict(zip(column_names, row))
+                facturas.append(factura)
+            
+            return facturas
+            
+        except Exception as e:
+            logger.error(f"Error obteniendo facturas: {e}")
+            return []
     
-    def obtener_estadisticas(self) -> Dict:
-        """Obtener estadísticas de la base de datos"""
+    def obtener_estadisticas(self) -> Dict[str, Any]:
+        """Obtiene estadísticas de la base de datos"""
         try:
-            cursor = self.conn.cursor()
+            stats = {}
             
             # Total de facturas
-            cursor.execute("SELECT COUNT(*) FROM facturas")
-            total_facturas = cursor.fetchone()[0]
+            self.cursor.execute("SELECT COUNT(*) FROM facturas")
+            stats['total_facturas'] = self.cursor.fetchone()[0]
             
-            # Total monetario
-            cursor.execute("SELECT SUM(total) FROM facturas")
-            total_monetario = cursor.fetchone()[0] or 0
+            # Total de proveedores únicos
+            self.cursor.execute("SELECT COUNT(DISTINCT rnc_emisor) FROM facturas")
+            stats['total_proveedores'] = self.cursor.fetchone()[0]
             
-            # Proveedores únicos
-            cursor.execute("SELECT COUNT(DISTINCT nombre) FROM facturas")
-            proveedores_unicos = cursor.fetchone()[0]
+            # Suma total
+            self.cursor.execute("SELECT SUM(total) FROM facturas")
+            stats['suma_total'] = self.cursor.fetchone()[0] or 0
             
-            return {
-                'total_facturas': total_facturas,
-                'total_monetario': round(total_monetario, 2),
-                'proveedores_unicos': proveedores_unicos
-            }
-        except sqlite3.Error as e:
+            # Promedio
+            self.cursor.execute("SELECT AVG(total) FROM facturas")
+            stats['promedio_factura'] = self.cursor.fetchone()[0] or 0
+            
+            # Factura más alta y más baja
+            self.cursor.execute("SELECT MAX(total), MIN(total) FROM facturas")
+            max_min = self.cursor.fetchone()
+            stats['factura_maxima'] = max_min[0] or 0
+            stats['factura_minima'] = max_min[1] or 0
+            
+            return stats
+            
+        except Exception as e:
             logger.error(f"Error obteniendo estadísticas: {e}")
             return {}
     
+    def obtener_configuracion(self, clave: str = None) -> Any:
+        """Obtiene configuración de la base de datos"""
+        try:
+            if clave:
+                self.cursor.execute(
+                    "SELECT valor FROM configuracion WHERE clave = ?", 
+                    (clave,)
+                )
+                resultado = self.cursor.fetchone()
+                return resultado[0] if resultado else None
+            else:
+                self.cursor.execute("SELECT clave, valor FROM configuracion")
+                return {row[0]: row[1] for row in self.cursor.fetchall()}
+                
+        except Exception as e:
+            logger.error(f"Error obteniendo configuración: {e}")
+            return None
+    
+    def actualizar_configuracion(self, clave: str, valor: str):
+        """Actualiza la configuración"""
+        try:
+            self.cursor.execute('''
+                INSERT OR REPLACE INTO configuracion (clave, valor)
+                VALUES (?, ?)
+            ''', (clave, valor))
+            self.conn.commit()
+            
+        except Exception as e:
+            logger.error(f"Error actualizando configuración: {e}")
+    
+    def eliminar_factura(self, factura_id: int) -> bool:
+        """Elimina una factura de la base de datos"""
+        try:
+            self.cursor.execute("DELETE FROM facturas WHERE id = ?", (factura_id,))
+            self.conn.commit()
+            return self.cursor.rowcount > 0
+            
+        except Exception as e:
+            logger.error(f"Error eliminando factura: {e}")
+            return False
+    
     def close(self):
-        """Cerrar conexión a la base de datos"""
+        """Cierra la conexión a la base de datos"""
         if self.conn:
             self.conn.close()
             logger.info("Conexión a base de datos cerrada")
     
     def __enter__(self):
-        """Context manager support"""
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager support"""
         self.close()
 
-
-# Función de conveniencia para uso rápido
-def get_database_manager():
-    """Obtener una instancia del gestor de base de datos"""
-    return DatabaseManager()
-
-
-# Pruebas del módulo
-if __name__ == "__main__":
-    # Configurar logging básico para pruebas
-    logging.basicConfig(level=logging.INFO)
-    
-    # Probar la base de datos
-    with DatabaseManager() as db:
-        print("✅ Base de datos inicializada correctamente")
-        
-        # Probar inserción
-        test_data = {
-            'nombre': 'Proveedor Test',
-            'rfc': 'TEST123456789',
-            'fecha': '2024-01-01',
-            'total': '1000.50',
-            'uuid': 'TEST-UUID-123'
-        }
-        
-        if db.insertar_factura(test_data):
-            print("✅ Inserción de prueba exitosa")
-        
-        # Probar búsqueda
-        facturas = db.buscar_facturas('nombre', 'Test')
-        print(f"✅ Búsqueda encontrada: {len(facturas)} facturas")
-        
-        # Probar estadísticas
-        stats = db.obtener_estadisticas()
-        print(f"✅ Estadísticas: {stats}")
+# Instancia global para uso en la aplicación
+db_manager = DatabaseManager()

@@ -1,84 +1,68 @@
 """
-Configuraciones y constantes de la aplicación
+Configuración de la aplicación Extractor de Facturas
+Usa rutas relativas para ser portable entre diferentes sistemas
 """
-
 import os
-import pytesseract
-from utils.constants import *
+from pathlib import Path
 
-class Config:
-    """Clase de configuración de la aplicación"""
-    
-    # Configuración de Tesseract
-    TESSERACT_PATH = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-    
-    # Base de datos
-    DATABASE_NAME = 'facturas.db'
-    
-    # Configuración de Logging
-    LOG_LEVEL = 'INFO'  # DEBUG, INFO, WARNING, ERROR, CRITICAL
-    LOG_FILE = 'logs/app.log'
-    LOG_MAX_SIZE = 10 * 1024 * 1024  # 10MB
-    LOG_BACKUP_COUNT = 5
-    
-    # Configuración de OCR
-    OCR_LANGUAGES = ['spa', 'eng']
-    OCR_CONFIG = '--oem 3 --psm 6'
-    
-    # Patrones regex para extracción
-    PATTERNS = {
-        'rnc': [
-            r'RNC\s*:?\s*(\d{9}|\d{3}-\d{7}-\d{1})',
-            r'R\.N\.C\.\s*:?\s*(\d{9}|\d{3}-\d{7}-\d{1})',
-            r'IDENTIFICACION\s*:?\s*(\d{9}|\d{3}-\d{7}-\d{1})',
-            r'(\d{3}-\d{7}-\d{1})',
-            r'(\d{9})'
-        ],
-        'ncf': [
-            r'NCF\s*:?\s*([A-Z]\d{2}\d{11})',
-            r'COMPROBANTE\s*:?\s*([A-Z]\d{2}\d{11})',
-            r'NO\.?\s*COMPROBANTE\s*:?\s*([A-Z]\d{2}\d{11})',
-            r'([A-Z]\d{2}\d{11})'
-        ],
-        'fecha': [
-            r'FECHA\s*:?\s*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})',
-            r'EMISION\s*:?\s*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})',
-            r'FECHA\s*DE\s*EMISION\s*:?\s*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})',
-            r'(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})'
-        ]
+# Obtener el directorio base del proyecto (donde está config.py)
+BASE_DIR = Path(__file__).parent
+
+# Configuración de rutas
+UPLOAD_FOLDER = BASE_DIR / 'uploads'
+OUTPUT_FOLDER = BASE_DIR / 'output'
+LOG_FOLDER = BASE_DIR / 'logs'
+DATABASE_FOLDER = BASE_DIR / 'database'
+
+# Crear directorios si no existen
+for folder in [UPLOAD_FOLDER, OUTPUT_FOLDER, LOG_FOLDER, DATABASE_FOLDER]:
+    folder.mkdir(exist_ok=True)
+
+# Configuración de la base de datos
+DATABASE_PATH = DATABASE_FOLDER / 'facturas.db'
+
+# Configuración de la aplicación
+ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'tiff', 'bmp'}
+MAX_FILE_SIZE = 16 * 1024 * 1024  # 16MB
+
+# Configuración OCR
+OCR_CONFIG = {
+    'lang': 'spa',
+    'oem': 3,
+    'psm': 6
+}
+
+# Configuración de la interfaz gráfica
+UI_CONFIG = {
+    'window_title': 'Extractor de Facturas',
+    'window_size': '1000x700',
+    'theme': 'clam'
+}
+
+# Configuración de exportación
+EXPORT_CONFIG = {
+    'excel_columns': ['nombre', 'rfc', 'fecha', 'total', 'uuid', 'archivo_origen'],
+    'word_template': None  # Puedes agregar una plantilla DOCX después
+}
+
+def get_config():
+    """Retornar la configuración como diccionario"""
+    return {
+        'upload_folder': str(UPLOAD_FOLDER),
+        'output_folder': str(OUTPUT_FOLDER),
+        'log_folder': str(LOG_FOLDER),
+        'database_path': str(DATABASE_PATH),
+        'allowed_extensions': ALLOWED_EXTENSIONS,
+        'max_file_size': MAX_FILE_SIZE,
+        'ocr_config': OCR_CONFIG,
+        'ui_config': UI_CONFIG,
+        'export_config': EXPORT_CONFIG
     }
-    
-    # Tipos de NCF válidos
-    NCF_TIPOS_VALIDOS = ['A', 'B', 'E', 'F', 'G', 'H', 'I', 'J', 'K']
-    
-    @classmethod
-    def initialize(cls):
-        """Inicializa la configuración de la aplicación"""
-        try:
-            # Configurar Tesseract
-            pytesseract.pytesseract.tesseract_cmd = cls.TESSERACT_PATH
-            
-            # Crear directorios necesarios
-            os.makedirs('exports', exist_ok=True)
-            os.makedirs('temp', exist_ok=True)
-            os.makedirs('logs', exist_ok=True)
-            
-            # Configurar logging
-            import logging
-            from utils.helpers import Helpers
-            
-            log_level = getattr(logging, cls.LOG_LEVEL)
-            Helpers.setup_logging(
-                log_file=cls.LOG_FILE,
-                level=log_level,
-                max_bytes=cls.LOG_MAX_SIZE,
-                backup_count=cls.LOG_BACKUP_COUNT
-            )
-            
-            logging.info("✓ Configuración de la aplicación inicializada")
-            logging.info(f"✓ Nivel de log: {cls.LOG_LEVEL}")
-            logging.info(f"✓ Base de datos: {cls.DATABASE_NAME}")
-            
-        except Exception as e:
-            print(f"✗ Error inicializando configuración: {e}")
-            raise
+
+# Prueba de configuración
+if __name__ == "__main__":
+    config = get_config()
+    print("✅ Configuración cargada correctamente")
+    for key, value in config.items():
+        if key not in ['ocr_config', 'ui_config', 'export_config']:
+            print(f"   {key}: {value}")
