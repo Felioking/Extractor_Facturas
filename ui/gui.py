@@ -10,15 +10,6 @@ import json
 import glob
 import pandas as pd
 
-# Importar módulos de tu estructura de carpetas
-from database.models import DatabaseManager
-from ocr.image_preprocessor import ImageProcessor
-from ocr.text_extractor import TextExtractor
-from processing.data_extractor import DataExtractor
-from processing.validator import Validator
-from processing.exporter import Exporter
-from utils.helpers import setup_logging
-
 # Configurar logging
 logger = logging.getLogger(__name__)
 
@@ -36,9 +27,19 @@ class ExtractorFacturasApp:
         self.proveedores_frecuentes = []
         
         # Inicializar módulos
-        self.db_manager = DatabaseManager()
-        self.image_processor = ImageProcessor()
-        self.data_extractor = DataExtractor()
+        try:
+            from database.models import DatabaseManager
+            from ocr.image_preprocessor import ImageProcessor
+            from processing.data_extractor import DataExtractor
+            
+            self.db_manager = DatabaseManager()
+            self.image_processor = ImageProcessor()
+            self.data_extractor = DataExtractor()
+            
+        except ImportError as e:
+            logger.error(f"Error importando módulos: {e}")
+            messagebox.showerror("Error", f"No se pudieron cargar los módulos:\n{e}")
+            return
         
         # Cargar proveedores frecuentes
         self.cargar_proveedores_frecuentes()
@@ -728,4 +729,4 @@ class ExtractorFacturasApp:
         self.ruta_imagen = None
         self.lista_imagenes = []
         self.indice_actual = -1
-        self.actualizar_navegacion() 
+        self.actualizar_navegacion()
