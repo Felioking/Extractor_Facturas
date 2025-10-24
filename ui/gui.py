@@ -1,4 +1,4 @@
-# ui/gui.py - VERSIÓN COMPLETA CORREGIDA
+# ui/gui.py - VERSIÓN CORREGIDA (Mapeo de Campos)
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
 from PIL import Image, ImageTk
@@ -175,7 +175,7 @@ class ExtractorFacturasApp:
         campos_fiscal = [
             ("RNC Emisor:", "rnc_emisor"),
             ("Nombre Emisor:", "nombre_emisor"),
-            ("Comprobante/NCF:", "comprobante"),
+            ("Comprobante:", "comprobante"),  # ✅ CAMBIO: Ahora es genérico "Comprobante"
             ("Fecha Emisión:", "fecha_emision"),
             ("Fecha Vencimiento:", "fecha_vencimiento")
         ]
@@ -222,7 +222,7 @@ class ExtractorFacturasApp:
         self.texto_validacion = scrolledtext.ScrolledText(parent, height=8, font=("Consolas", 8))
         self.texto_validacion.grid(row=2, column=0, columnspan=2, sticky=tk.NSEW, pady=5)
         
-        ttk.Button(parent, text="Validar NCF", command=self.validar_ncf).grid(row=3, column=0, pady=5, sticky=tk.W)
+        ttk.Button(parent, text="Validar Comprobante", command=self.validar_comprobante).grid(row=3, column=0, pady=5, sticky=tk.W)
         ttk.Button(parent, text="Verificar en BD", command=self.verificar_base_datos).grid(row=3, column=1, pady=5, sticky=tk.E)
         
         parent.columnconfigure(0, weight=1)
@@ -379,7 +379,7 @@ class ExtractorFacturasApp:
             self.validar_y_mostrar_resultados()
             
             # Guardar en base de datos automáticamente
-            comprobante = self._obtener_valor_mapeado(['numero_factura', 'numero_comprobante', 'ticket', 'ncf'])
+            comprobante = self._obtener_comprobante_apropiado()
             if comprobante:
                 # Preparar datos para la base de datos
                 datos_db = {
@@ -389,7 +389,8 @@ class ExtractorFacturasApp:
                     'fecha_emision': self._obtener_valor_mapeado(['fecha', 'fecha_emision']),
                     'total': self._obtener_valor_mapeado(['total', 'monto_total', 'importe']),
                     'subtotal': self._obtener_valor_mapeado(['subtotal']),
-                    'impuestos': self._obtener_valor_mapeado(['itbis', 'impuestos', 'iva'])
+                    'impuestos': self._obtener_valor_mapeado(['itbis', 'impuestos', 'iva']),
+                    'tipo_factura': self.datos_extraidos.get('tipo_factura', 'general')
                 }
                 
                 resultado, mensaje = self.db_manager.guardar_factura(datos_db)
@@ -409,15 +410,33 @@ class ExtractorFacturasApp:
         finally:
             self.root.config(cursor="")
     
+    def _obtener_comprobante_apropiado(self):
+        """Obtiene el comprobante apropiado según el tipo de factura"""
+        tipo_factura = self.datos_extraidos.get('tipo_factura', 'general')
+        
+        if tipo_factura == 'peaje':
+            # Para peaje, usar número de ticket
+            return self._obtener_valor_mapeado(['numero_factura', 'ticket', 'numero'])
+        else:
+            # Para otras facturas, buscar NCF primero
+            ncf = self._obtener_valor_mapeado(['ncf'])
+            if ncf:
+                return ncf
+            else:
+                # Si no hay NCF, usar número de factura
+                return self._obtener_valor_mapeado(['numero_factura', 'numero_comprobante', 'ticket'])
+    
     def llenar_formularios(self):
         """Llena los formularios con los datos extraídos - VERSIÓN CORREGIDA"""
         
-        # 🔥 MAPEO DE CAMPOS: Lo que envía el backend vs lo que espera la UI
+        # 🔥 MAPEO DE CAMPOS MEJORADO: Diferenciar entre NCF y Ticket
+        tipo_factura = self.datos_extraidos.get('tipo_factura', 'general')
+        
         mapeo_campos = {
             # Información Fiscal
             'rnc_emisor': ['nit', 'rnc', 'numero_documento', 'identificacion', 'documento'],
             'nombre_emisor': ['razon_social', 'nombre_empresa', 'empresa', 'cliente', 'operador'],
-            'comprobante': ['numero_factura', 'numero_comprobante', 'ticket', 'numero', 'ncf'],
+            'comprobante': self._obtener_campos_comprobante(tipo_factura),  # ✅ CORRECCIÓN: Campos dinámicos
             'fecha_emision': ['fecha', 'fecha_emision', 'fecha_documento'],
             'fecha_vencimiento': ['fecha_vencimiento'],
             
@@ -449,6 +468,15 @@ class ExtractorFacturasApp:
         # Mostrar en consola qué campos se encontraron
         self._mostrar_campos_encontrados()
 
+    def _obtener_campos_comprobante(self, tipo_factura):
+        """Obtiene los campos apropiados para comprobante según el tipo de factura"""
+        if tipo_factura == 'peaje':
+            # Para peaje: número de ticket
+            return ['numero_factura', 'ticket', 'numero']
+        else:
+            # Para otras facturas: NCF primero, luego número de factura
+            return ['ncf', 'numero_factura', 'numero_comprobante', 'ticket']
+
     def _obtener_valor_mapeado(self, posibles_campos):
         """Obtiene el valor del primer campo que exista en la lista"""
         for campo in posibles_campos:
@@ -460,10 +488,12 @@ class ExtractorFacturasApp:
         """Muestra en consola qué campos se encontraron y mapearon"""
         print("\n🎯 CAMPOS MAPEADOS EN UI:")
         
+        tipo_factura = self.datos_extraidos.get('tipo_factura', 'general')
+        
         campos_mapeados = {
             'RNC Emisor': self._obtener_valor_mapeado(['nit', 'rnc', 'numero_documento']),
             'Nombre Emisor': self._obtener_valor_mapeado(['razon_social', 'nombre_empresa', 'empresa']),
-            'Comprobante': self._obtener_valor_mapeado(['numero_factura', 'numero_comprobante', 'ticket']),
+            'Comprobante': self._obtener_comprobante_apropiado(),
             'Fecha Emisión': self._obtener_valor_mapeado(['fecha', 'fecha_emision']),
             'Total': self._obtener_valor_mapeado(['total', 'monto_total', 'importe'])
         }
@@ -473,6 +503,16 @@ class ExtractorFacturasApp:
                 print(f"   ✅ {campo}: {valor}")
             else:
                 print(f"   ❌ {campo}: NO ENCONTRADO")
+        
+        # Mostrar tipo de comprobante
+        if tipo_factura == 'peaje':
+            print(f"   🎫 Tipo: Factura de Peaje (Ticket)")
+        else:
+            ncf = self._obtener_valor_mapeado(['ncf'])
+            if ncf:
+                print(f"   📄 Tipo: Factura Fiscal (NCF)")
+            else:
+                print(f"   📄 Tipo: Factura General (Número)")
         
         # Mostrar campos adicionales que podrían interesar
         campos_adicionales = ['vehiculo', 'estacion', 'hora', 'subtotal', 'itbis']
@@ -496,71 +536,120 @@ class ExtractorFacturasApp:
     
     # ========== MÉTODOS DE VALIDACIÓN ==========
     
-    def validar_ncf(self):
-        """Valida el NCF actual"""
-        ncf = self._obtener_valor_mapeado(['numero_factura', 'numero_comprobante', 'ticket', 'ncf'])
-        if not ncf:
-            messagebox.showwarning("Advertencia", "No hay NCF para validar")
+    def validar_comprobante(self):
+        """Valida el comprobante actual - VERSIÓN CORREGIDA"""
+        tipo_factura = self.datos_extraidos.get('tipo_factura', 'general')
+        comprobante = self._obtener_comprobante_apropiado()
+        
+        if not comprobante:
+            messagebox.showwarning("Advertencia", "No hay comprobante para validar")
             return
         
-        valido, mensaje = self.data_extractor.validar_ncf_formato(ncf)
-        
         self.texto_validacion.delete(1.0, tk.END)
-        self.texto_validacion.insert(tk.END, f"Validación NCF: {ncf}\n\n")
         
-        if valido:
-            self.texto_validacion.insert(tk.END, f"✅ {mensaje}\n")
+        # ✅ CORRECCIÓN: Manejo diferenciado por tipo de factura
+        if tipo_factura == 'peaje':
+            self.texto_validacion.insert(tk.END, f"🎫 VALIDACIÓN FACTURA DE PEAJE\n")
+            self.texto_validacion.insert(tk.END, "=" * 40 + "\n\n")
+            self.texto_validacion.insert(tk.END, f"📄 Ticket: {comprobante}\n")
+            self.texto_validacion.insert(tk.END, f"✅ Válido para factura de peaje\n")
+            self.texto_validacion.insert(tk.END, f"ℹ️  Las facturas de peaje no requieren NCF\n")
             self.label_estado_validacion.config(text="VÁLIDO", foreground="green")
         else:
-            self.texto_validacion.insert(tk.END, f"❌ {mensaje}\n")
-            self.label_estado_validacion.config(text="INVÁLIDO", foreground="red")
-        
-        if self.db_manager.verificar_comprobante_existente(ncf):
-            self.texto_validacion.insert(tk.END, "\n⚠️ ADVERTENCIA: Este comprobante ya existe en la base de datos")
+            # Para otros tipos de factura, validar NCF
+            ncf_valido = self.data_extractor.validar_ncf_formato(comprobante)
+            
+            self.texto_validacion.insert(tk.END, f"📄 VALIDACIÓN NCF\n")
+            self.texto_validacion.insert(tk.END, "=" * 40 + "\n\n")
+            self.texto_validacion.insert(tk.END, f"Comprobante: {comprobante}\n\n")
+            
+            if ncf_valido:
+                self.texto_validacion.insert(tk.END, f"✅ NCF VÁLIDO\n")
+                self.texto_validacion.insert(tk.END, f"El formato del NCF es correcto\n")
+                self.label_estado_validacion.config(text="VÁLIDO", foreground="green")
+            else:
+                self.texto_validacion.insert(tk.END, f"❌ NCF INVÁLIDO\n")
+                self.texto_validacion.insert(tk.END, f"El formato del NCF no es válido\n")
+                self.texto_validacion.insert(tk.END, f"ℹ️  Formato esperado: E310000000001, B0100000001, etc.\n")
+                self.label_estado_validacion.config(text="INVÁLIDO", foreground="red")
+            
+            # Verificar duplicados solo para facturas con NCF válido
+            if ncf_valido and self.db_manager.verificar_comprobante_existente(comprobante):
+                self.texto_validacion.insert(tk.END, f"\n⚠️  ADVERTENCIA: Este comprobante ya existe en la base de datos")
     
     def verificar_base_datos(self):
         """Verifica si el comprobante existe en la base de datos"""
-        ncf = self._obtener_valor_mapeado(['numero_factura', 'numero_comprobante', 'ticket', 'ncf'])
-        if not ncf:
+        comprobante = self._obtener_comprobante_apropiado()
+        tipo_factura = self.datos_extraidos.get('tipo_factura', 'general')
+        
+        if not comprobante:
             messagebox.showwarning("Advertencia", "No hay comprobante para verificar")
             return
         
-        duplicado = self.db_manager.verificar_comprobante_existente(ncf)
+        duplicado = self.db_manager.verificar_comprobante_existente(comprobante)
         
         self.texto_validacion.delete(1.0, tk.END)
-        self.texto_validacion.insert(tk.END, f"Verificación en Base de Datos:\n\n")
+        
+        if tipo_factura == 'peaje':
+            self.texto_validacion.insert(tk.END, f"🎫 VERIFICACIÓN FACTURA DE PEAJE\n")
+            self.texto_validacion.insert(tk.END, "=" * 40 + "\n\n")
+            self.texto_validacion.insert(tk.END, f"📄 Ticket: {comprobante}\n\n")
+        else:
+            self.texto_validacion.insert(tk.END, f"📄 VERIFICACIÓN EN BASE DE DATOS\n")
+            self.texto_validacion.insert(tk.END, "=" * 40 + "\n\n")
+            self.texto_validacion.insert(tk.END, f"Comprobante: {comprobante}\n\n")
         
         if duplicado:
-            self.texto_validacion.insert(tk.END, f"❌ El comprobante {ncf} ya existe en la base de datos")
+            self.texto_validacion.insert(tk.END, f"❌ Este comprobante ya existe en la base de datos\n")
+            self.texto_validacion.insert(tk.END, f"ℹ️  Posible duplicado\n")
             self.label_estado_validacion.config(text="DUPLICADO", foreground="orange")
         else:
-            self.texto_validacion.insert(tk.END, f"✅ El comprobante {ncf} no existe en la base de datos")
+            self.texto_validacion.insert(tk.END, f"✅ Este comprobante no existe en la base de datos\n")
+            self.texto_validacion.insert(tk.END, f"ℹ️  Puede proceder con el registro\n")
             self.label_estado_validacion.config(text="NUEVO", foreground="green")
     
     def validar_y_mostrar_resultados(self):
-        """Realiza validaciones y muestra resultados - VERSIÓN ACTUALIZADA"""
+        """Realiza validaciones y muestra resultados - VERSIÓN MEJORADA"""
         self.texto_validacion.delete(1.0, tk.END)
         
-        # Obtener comprobante usando el mapeo
-        ncf = self._obtener_valor_mapeado(['numero_factura', 'numero_comprobante', 'ticket', 'ncf'])
+        # Obtener datos
+        comprobante = self._obtener_comprobante_apropiado()
         rnc = self._obtener_valor_mapeado(['nit', 'rnc', 'numero_documento'])
+        tipo_factura = self.datos_extraidos.get('tipo_factura', 'general')
         
         self.texto_validacion.insert(tk.END, "🔍 RESULTADOS DE VALIDACIÓN\n")
         self.texto_validacion.insert(tk.END, "=" * 40 + "\n\n")
         
-        if ncf:
-            ncf_valido, mensaje_ncf = self.data_extractor.validar_ncf_formato(ncf)
-            self.texto_validacion.insert(tk.END, f"📄 COMPROBANTE: {ncf}\n")
-            self.texto_validacion.insert(tk.END, f"   {mensaje_ncf}\n\n")
+        # ✅ CORRECCIÓN: Manejo diferenciado por tipo de factura
+        if tipo_factura == 'peaje':
+            self.texto_validacion.insert(tk.END, f"🎫 FACTURA DE PEAJE\n")
+            self.texto_validacion.insert(tk.END, f"   No requiere NCF\n\n")
             
-            if ncf_valido:
-                self.label_estado_validacion.config(text="VÁLIDO", foreground="green")
+            if comprobante:
+                self.texto_validacion.insert(tk.END, f"📄 Ticket: {comprobante}\n")
+                self.texto_validacion.insert(tk.END, f"   ✅ Válido para factura de peaje\n\n")
             else:
-                self.label_estado_validacion.config(text="INVÁLIDO", foreground="red")
+                self.texto_validacion.insert(tk.END, f"❌ No se encontró número de ticket\n\n")
+            self.label_estado_validacion.config(text="VÁLIDO", foreground="green")
+            
         else:
-            self.texto_validacion.insert(tk.END, "❌ No se encontró comprobante\n\n")
-            self.label_estado_validacion.config(text="INCOMPLETO", foreground="orange")
+            # Para otros tipos de factura, validar NCF
+            if comprobante:
+                ncf_valido = self.data_extractor.validar_ncf_formato(comprobante)
+                mensaje_ncf = "✅ NCF válido" if ncf_valido else "❌ NCF no válido"
+                
+                self.texto_validacion.insert(tk.END, f"📄 COMPROBANTE: {comprobante}\n")
+                self.texto_validacion.insert(tk.END, f"   {mensaje_ncf}\n\n")
+                
+                if ncf_valido:
+                    self.label_estado_validacion.config(text="VÁLIDO", foreground="green")
+                else:
+                    self.label_estado_validacion.config(text="INVÁLIDO", foreground="red")
+            else:
+                self.texto_validacion.insert(tk.END, "❌ No se encontró comprobante\n\n")
+                self.label_estado_validacion.config(text="INCOMPLETO", foreground="orange")
         
+        # Validación de RNC (común para todos los tipos)
         if rnc:
             if len(str(rnc)) in [9, 11]:
                 self.texto_validacion.insert(tk.END, f"🏢 RNC: {rnc} (Formato válido - {len(str(rnc))} dígitos)\n\n")
@@ -569,9 +658,10 @@ class ExtractorFacturasApp:
         else:
             self.texto_validacion.insert(tk.END, "❌ No se encontró RNC\n\n")
         
-        # Verificar duplicados
-        if ncf and self.db_manager.verificar_comprobante_existente(ncf):
-            self.texto_validacion.insert(tk.END, "🚨 ADVERTENCIA: Este comprobante ya existe en la base de datos\n\n")
+        # Verificar duplicados (solo si es factura con NCF válido)
+        if tipo_factura != 'peaje' and comprobante and self.data_extractor.validar_ncf_formato(comprobante):
+            if self.db_manager.verificar_comprobante_existente(comprobante):
+                self.texto_validacion.insert(tk.END, "🚨 ADVERTENCIA: Este comprobante ya existe en la base de datos\n\n")
         
         # Mostrar calidad de extracción
         if 'calidad_texto' in self.datos_extraidos:
@@ -582,6 +672,9 @@ class ExtractorFacturasApp:
         if 'confianza_clasificacion' in self.datos_extraidos:
             confianza = self.datos_extraidos['confianza_clasificacion']
             self.texto_validacion.insert(tk.END, f"🎯 Confianza de clasificación: {confianza:.2f}\n")
+        
+        # Mostrar tipo de factura detectado
+        self.texto_validacion.insert(tk.END, f"📋 Tipo de factura: {tipo_factura}\n")
 
     # ========== MÉTODOS ADICIONALES ==========
     
@@ -622,6 +715,7 @@ class ExtractorFacturasApp:
                 texto_bd.insert(tk.END, f"RNC: {factura['rnc_emisor']}\n")
                 texto_bd.insert(tk.END, f"Nombre: {factura['nombre_emisor']}\n")
                 texto_bd.insert(tk.END, f"Comprobante: {factura['comprobante']}\n")
+                texto_bd.insert(tk.END, f"Tipo: {factura.get('tipo_factura', 'N/A')}\n")
                 texto_bd.insert(tk.END, f"Fecha: {factura['fecha_emision']}\n")
                 texto_bd.insert(tk.END, f"Total: RD$ {factura['total'] or 0:,.2f}\n")
                 texto_bd.insert(tk.END, f"Procesado: {factura['fecha_procesamiento']}\n")
@@ -703,14 +797,15 @@ class ExtractorFacturasApp:
                     resultados.append(datos)
                     
                     # Guardar en base de datos si tiene comprobante
-                    comprobante = self._obtener_valor_mapeado(['numero_factura', 'numero_comprobante', 'ticket', 'ncf'])
+                    comprobante = self._obtener_comprobante_apropiado()
                     if comprobante:
                         datos_db = {
                             'rnc_emisor': self._obtener_valor_mapeado(['nit', 'rnc', 'numero_documento']),
                             'nombre_emisor': self._obtener_valor_mapeado(['razon_social', 'nombre_empresa', 'empresa']),
                             'comprobante': comprobante,
                             'fecha_emision': self._obtener_valor_mapeado(['fecha', 'fecha_emision']),
-                            'total': self._obtener_valor_mapeado(['total', 'monto_total', 'importe'])
+                            'total': self._obtener_valor_mapeado(['total', 'monto_total', 'importe']),
+                            'tipo_factura': datos.get('tipo_factura', 'general')
                         }
                         self.db_manager.guardar_factura(datos_db)
                     
@@ -749,7 +844,7 @@ class ExtractorFacturasApp:
             
             # Seleccionar y renombrar columnas relevantes
             columnas_exportar = [
-                'rnc_emisor', 'nombre_emisor', 'comprobante', 'fecha_emision',
+                'rnc_emisor', 'nombre_emisor', 'comprobante', 'tipo_factura', 'fecha_emision',
                 'subtotal', 'impuestos', 'descuentos', 'total', 'fecha_procesamiento'
             ]
             
@@ -762,6 +857,7 @@ class ExtractorFacturasApp:
                 'rnc_emisor': 'RNC Emisor',
                 'nombre_emisor': 'Nombre Emisor',
                 'comprobante': 'Comprobante',
+                'tipo_factura': 'Tipo Factura',
                 'fecha_emision': 'Fecha Emisión',
                 'subtotal': 'Subtotal',
                 'impuestos': 'Impuestos',

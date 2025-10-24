@@ -1,6 +1,8 @@
 # processing/data_extractor.py
 import re
-from typing import Dict, List, Optional, Any
+import traceback
+from typing import Dict, List, Optional, Any, Tuple
+from datetime import datetime
 from processing.validator import ValidadorDatos
 from processing.confidence_analyzer import AnalizadorConfianza
 from ml.invoice_classifier import InvoiceClassifier
@@ -16,6 +18,9 @@ class DataExtractor:
         self.training_manager = TrainingManager()
         self.patrones = self._construir_patrones()
         
+        # Inicializar sistema de validadores robusto
+        self.inicializar_validadores()
+        
         # Cargar modelo ML si existe
         self.classifier.load_model()
         
@@ -23,6 +28,34 @@ class DataExtractor:
         if not self.classifier.classifier:
             self._train_with_synthetic_data()
     
+    def inicializar_validadores(self):
+        """Inicializa el sistema de validadores robusto"""
+        self.validadores = {
+            'ncf': self.validar_ncf_formato,
+            'rnc': self.validar_rnc_formato,
+            'fecha': self.validar_fecha_formato,
+            'total': self.validar_total_formato,
+            'numero_factura': self.validar_numero_factura_formato,
+            'nit': self.validar_rnc_formato,
+            'identificacion': self.validar_rnc_formato,
+            'razon_social': self.validar_texto_general,
+            'vehiculo': self.validar_texto_general,
+            'estacion': self.validar_texto_general,
+            'hora': self.validar_hora_formato,
+            'operador': self.validar_texto_general
+        }
+        
+        # Métodos de fallback para validadores faltantes
+        self.fallbacks = {
+            'validar_rnc_formato': self._fallback_validar_rnc,
+            'validar_total_formato': self._fallback_validar_total,
+            'validar_numero_factura_formato': self._fallback_validar_numero_factura,
+            'validar_fecha_formato': self._fallback_validar_fecha,
+            'validar_ncf_formato': self._fallback_validar_ncf,
+            'validar_hora_formato': self._fallback_validar_hora,
+            'validar_texto_general': self._fallback_validar_texto_general
+        }
+
     def _train_with_synthetic_data(self):
         """Entrena con datos sintéticos si no hay modelo real"""
         synthetic_data = self.training_manager.generate_synthetic_data()
@@ -33,34 +66,85 @@ class DataExtractor:
         """Extrae datos usando enfoque híbrido (Regex + ML)"""
         print("🔍 Iniciando extracción híbrida...")
         
-        # Análisis de calidad del texto
-        quality_analysis = self.ml_extractor.analyze_text_quality(texto)
-        print(f"📊 Calidad texto: {quality_analysis['calidad']} ({quality_analysis['puntuacion_calidad']}/10)")
-        
-        # Paso 1: Clasificar tipo de factura
-        invoice_type, confidence = self.classifier.get_prediction_confidence(texto)
-        print(f"📋 Tipo de factura: {invoice_type} (confianza: {confidence:.2f})")
-        
-        # Paso 2: Extracción con Regex (método tradicional)
-        datos_regex = self._extraer_con_regex(texto, invoice_type)
-        print(f"🔄 Regex extrajo {len(datos_regex)} campos")
-        
-        # Paso 3: Extracción con ML
-        datos_ml = self.ml_extractor.extract_with_ml(texto, invoice_type)
-        
-        # Paso 4: Combinar resultados inteligentemente
-        datos_combinados = self._combinar_resultados(datos_regex, datos_ml, texto, invoice_type)
-        
-        # Paso 5: Validar y calcular confianza
-        datos_validados = self._validar_datos(datos_combinados)
-        resultado_final = self._agregar_metadatos(datos_validados, texto, invoice_type, confidence, quality_analysis)
-        
-        # Guardar para entrenamiento futuro
-        self.training_manager.save_training_example(texto, invoice_type, datos_validados)
-        
-        print(f"✅ Extracción completada. Campos encontrados: {len(datos_validados)} campos")
-        return resultado_final
-    
+        try:
+            # Análisis de calidad del texto
+            quality_analysis = self.ml_extractor.analyze_text_quality(texto)
+            print(f"📊 Calidad texto: {quality_analysis['calidad']} ({quality_analysis['puntuacion_calidad']}/10)")
+            
+            # Paso 1: Clasificar tipo de factura - CON DEBUG DETALLADO
+            print("🎯 Iniciando clasificación de tipo de factura...")
+            invoice_type, confidence = self._clasificar_tipo_factura_seguro(texto)
+            print(f"📋 Tipo de factura: {invoice_type} (confianza: {confidence:.2f})")
+            
+            # Paso 2: Extracción con Regex (método tradicional)
+            datos_regex = self._extraer_con_regex(texto, invoice_type)
+            print(f"🔄 Regex extrajo {len(datos_regex)} campos")
+            
+            # Paso 3: Extracción con ML
+            datos_ml = self.ml_extractor.extract_with_ml(texto, invoice_type)
+            print(f"🧠 ML extrajo {len(datos_ml)} campos")
+            
+            # Paso 4: Combinar resultados inteligentemente
+            datos_combinados = self._combinar_resultados(datos_regex, datos_ml, texto, invoice_type)
+            
+            # Paso 5: Validar y calcular confianza
+            datos_validados = self._validar_datos_robusto(datos_combinados, invoice_type)
+            resultado_final = self._agregar_metadatos_optimizado(datos_validados, texto, invoice_type, confidence, quality_analysis)
+            
+            # Guardar para entrenamiento futuro
+            self.training_manager.save_training_example(texto, invoice_type, datos_validados)
+            
+            print(f"✅ Extracción completada. Campos encontrados: {len(datos_validados)} campos")
+            return resultado_final
+            
+        except Exception as e:
+            print(f"🚨 ERROR CRÍTICO en extracción: {str(e)}")
+            print(f"🔍 Traceback: {traceback.format_exc()}")
+            return self._extraccion_basica_fallback(texto, "general")
+
+    def _clasificar_tipo_factura_seguro(self, texto: str) -> Tuple[str, float]:
+        """
+        Clasificación segura del tipo de factura con manejo robusto de errores
+        """
+        try:
+            print("   🔧 Llamando a classifier.get_prediction_confidence...")
+            resultado = self.classifier.get_prediction_confidence(texto)
+            
+            # DEBUG: Verificar qué retorna exactamente
+            print(f"   🔍 Resultado clasificación: {resultado}")
+            print(f"   🔍 Tipo del resultado: {type(resultado)}")
+            
+            if isinstance(resultado, tuple):
+                print(f"   🔍 Longitud de tupla: {len(resultado)}")
+                if len(resultado) == 2:
+                    invoice_type, confidence = resultado
+                    # Validar tipos
+                    if not isinstance(invoice_type, str):
+                        invoice_type = str(invoice_type)
+                    if not isinstance(confidence, (int, float)):
+                        confidence = float(confidence) if confidence else 0.5
+                    return invoice_type, confidence
+                else:
+                    print(f"   ⚠️ Tupla con longitud inesperada: {len(resultado)}")
+                    return "general", 0.5
+            elif isinstance(resultado, dict):
+                print("   🔍 Resultado es diccionario, extrayendo valores...")
+                invoice_type = resultado.get('tipo', 'general')
+                confidence = resultado.get('confianza', 0.5)
+                return str(invoice_type), float(confidence)
+            else:
+                print(f"   ⚠️ Tipo de retorno inesperado: {type(resultado)}")
+                return "general", 0.5
+                
+        except ValueError as e:
+            if "too many values to unpack" in str(e):
+                print("   ❌ ERROR: Demasiados valores para desempaquetar en clasificación")
+                print("   🔍 Revisar classifier.get_prediction_confidence()")
+            return "general", 0.5
+        except Exception as e:
+            print(f"   ❌ Error en clasificación: {str(e)}")
+            return "general", 0.5
+
     def _construir_patrones(self) -> Dict[str, List[Dict]]:
         """Construye patrones de extracción por campo"""
         return {
@@ -203,120 +287,358 @@ class DataExtractor:
         """Verifica si el valor tiene buen formato de monto"""
         return bool(re.match(r'^\d+[.,]\d{2}$', str(valor)))
     
-    def _validar_datos(self, datos: Dict[str, Any]) -> Dict[str, Any]:
-        """Aplica validación a todos los datos"""
+    def _validar_datos_robusto(self, datos: Dict[str, Any], invoice_type: str) -> Dict[str, Any]:
+        """Aplica validación robusta a todos los datos considerando el tipo de factura"""
         datos_validados = {}
         
         for campo, valor in datos.items():
-            valor_validado = self._validar_campo(campo, valor)
-            if valor_validado is not None and str(valor_validado).strip():
-                datos_validados[campo] = valor_validado
-                print(f"   ✅ Campo {campo} validado: {valor_validado}")
-            else:
-                print(f"   ⚠️  Campo {campo} descartado: {valor}")
+            try:
+                # Validación especial para NCF en facturas de peaje
+                if campo == 'ncf' and invoice_type == 'peaje':
+                    print("   ⚠️  Factura de peaje: Ignorando validación NCF (no aplica)")
+                    continue
+                    
+                valor_validado = self.validar_campo(campo, valor)
+                if valor_validado is not None and str(valor_validado).strip():
+                    datos_validados[campo] = valor_validado
+                    print(f"   ✅ Campo {campo} validado: {valor_validado}")
+                else:
+                    print(f"   ⚠️  Campo {campo} descartado: {valor}")
+            except Exception as e:
+                print(f"   ❌ Error validando {campo}: {str(e)}")
+                # Incluir el campo aunque falle la validación
+                datos_validados[campo] = valor
         
         print(f"📊 Total de campos válidos: {len(datos_validados)}")
         return datos_validados
+
+    def validar_campo(self, nombre_campo: str, valor: Any) -> Any:
+        """Sistema robusto de validación de campos"""
+        try:
+            validador = self.validadores.get(nombre_campo)
+            if validador:
+                return validador(valor)
+            else:
+                print(f"⚠️ No hay validador para campo: {nombre_campo}")
+                return valor  # Por defecto, devolver valor original
+                
+        except AttributeError as e:
+            metodo_faltante = str(e).split("'")[-2]
+            print(f"🔧 Validador faltante: {metodo_faltante}, usando fallback")
+            return self._usar_fallback_validacion(metodo_faltante, valor)
+        except Exception as e:
+            print(f"❌ Error en validación {nombre_campo}: {str(e)}")
+            return valor  # Fallback: devolver valor original
+
+    def _usar_fallback_validacion(self, metodo_faltante: str, valor: Any) -> Any:
+        """Usa métodos de fallback para validadores faltantes"""
+        fallback = self.fallbacks.get(metodo_faltante)
+        if fallback:
+            return fallback(valor)
+        else:
+            print(f"⚠️ No hay fallback para {metodo_faltante}, validación omitida")
+            return valor
+
+    # ========== MÉTODOS DE VALIDACIÓN NUEVOS ==========
     
-    def _validar_campo(self, campo: str, valor: str) -> Any:
-        """Aplica validación específica por campo"""
-        validadores = {
-            'nit': self.validador.validar_y_corregir_nit,
-            'rnc': self.validador.validar_y_corregir_nit,
-            'fecha': self.validador.validar_y_corregir_fecha,
-            'total': self.validador.validar_y_corregir_monto,
-            'subtotal': self.validador.validar_y_corregir_monto,
-            'itbis': self.validador.validar_y_corregir_monto,
-            'ncf': lambda x: x.strip() if x.strip() else None,
-            'fecha_emision': self.validador.validar_y_corregir_fecha,
-            'fecha_vencimiento': self.validador.validar_y_corregir_fecha,
-            'razon_social': lambda x: x.strip() if x.strip() and len(x.strip()) > 2 else None,
-            'vehiculo': lambda x: x.strip() if x.strip() else None,
-            'estacion': lambda x: x.strip() if x.strip() else None,
-            'numero_factura': lambda x: x.strip() if x.strip() else None,
-            'hora': lambda x: x.strip() if x.strip() else None,
-            'operador': lambda x: x.strip() if x.strip() else None,
-            'empresa_detectada': lambda x: x.strip() if x.strip() else None,
-            'monto_detectado': self.validador.validar_y_corregir_monto,
-            'fecha_detectada': self.validador.validar_y_corregir_fecha,
-            'numero_documento': self.validador.validar_y_corregir_nit
-        }
-        
-        validador = validadores.get(campo)
-        return validador(valor) if validador else valor
+    def validar_ncf_formato(self, ncf: Any) -> bool:
+        """
+        Valida el formato de NCF (Número de Comprobante Fiscal)
+        Retorna: bool (True si es válido, False si no)
+        """
+        try:
+            if not ncf or not isinstance(ncf, str):
+                return False
+                
+            # Limpiar el NCF
+            ncf_clean = ncf.strip().upper()
+            
+            # ✅ CORRECCIÓN: Facturas de peaje NO tienen NCF, solo número de ticket
+            # No tratamos tickets de peaje como NCF válidos
+            
+            # Patrones comunes de NCF en República Dominicana (para facturas fiscales)
+            patrones = [
+                r'^[A-Z]\d{11}$',  # E310000000001
+                r'^[A-Z]{2}\d{9}$',  # B0100000001
+                r'^\d{3}-\d{7,8}$',  # 001-1234567
+                r'^\d{2}-\d{2}-\d{4,8}$',  # 01-01-123456
+                r'^\d{4}-\d{4}-\d{4}$',  # 0001-0000-0000001
+                r'^[A-Z]-\d{2}-\d{4,8}$'  # E-01-123456
+            ]
+            
+            for patron in patrones:
+                if re.match(patron, ncf_clean):
+                    print(f"✅ NCF válido: {ncf_clean} (patrón: {patron})")
+                    return True
+                    
+            print(f"❌ Formato NCF no válido: {ncf_clean}")
+            return False  # No cumple con ningún patrón de NCF fiscal
+            
+        except Exception as e:
+            print(f"Error validando NCF {ncf}: {str(e)}")
+            return False
+
+    def validar_rnc_formato(self, rnc: Any) -> Optional[str]:
+        """Valida formato de RNC"""
+        try:
+            if not rnc:
+                return None
+                
+            rnc_clean = str(rnc).strip()
+            
+            # Validación básica de RNC (9-11 dígitos)
+            if rnc_clean.isdigit() and 9 <= len(rnc_clean) <= 11:
+                print(f"✅ RNC válido: {rnc_clean}")
+                return rnc_clean
+            else:
+                print(f"⚠️ RNC con formato inusual: {rnc_clean}")
+                return rnc_clean  # Devolver original
+                
+        except Exception as e:
+            print(f"Error validando RNC {rnc}: {str(e)}")
+            return str(rnc) if rnc else None
+
+    def validar_fecha_formato(self, fecha: Any) -> Optional[str]:
+        """Valida y parsea formato de fecha"""
+        return self.parsear_fecha_robusto(fecha)
+
+    def validar_total_formato(self, total: Any) -> Optional[float]:
+        """Valida formato de total/monto"""
+        try:
+            if not total:
+                return None
+                
+            # Convertir a string y limpiar
+            total_str = str(total).replace('RD$', '').replace('$', '').replace(',', '').strip()
+            
+            # Intentar convertir a float
+            total_float = float(total_str)
+            
+            print(f"✅ Total válido: {total_float}")
+            return total_float
+            
+        except (ValueError, TypeError) as e:
+            print(f"❌ Error validando total {total}: {str(e)}")
+            return None
+
+    def validar_numero_factura_formato(self, numero: Any) -> Optional[str]:
+        """Valida formato de número de factura"""
+        try:
+            if not numero:
+                return None
+                
+            numero_clean = str(numero).strip()
+            
+            # Aceptar cualquier string no vacío como número de factura válido
+            if numero_clean:
+                print(f"✅ Número factura válido: {numero_clean}")
+                return numero_clean
+            else:
+                return None
+                
+        except Exception as e:
+            print(f"Error validando número factura {numero}: {str(e)}")
+            return str(numero) if numero else None
+
+    def validar_hora_formato(self, hora: Any) -> Optional[str]:
+        """Valida formato de hora"""
+        try:
+            if not hora:
+                return None
+                
+            hora_clean = str(hora).strip()
+            
+            # Patrón básico de hora
+            if re.match(r'^\d{1,2}:\d{2}(:\d{2})?$', hora_clean):
+                print(f"✅ Hora válida: {hora_clean}")
+                return hora_clean
+            else:
+                print(f"⚠️ Formato de hora inusual: {hora_clean}")
+                return hora_clean
+                
+        except Exception as e:
+            print(f"Error validando hora {hora}: {str(e)}")
+            return str(hora) if hora else None
+
+    def validar_texto_general(self, texto: Any) -> Optional[str]:
+        """Valida texto general (razón social, vehículo, estación, etc.)"""
+        try:
+            if not texto:
+                return None
+                
+            texto_clean = str(texto).strip()
+            
+            if texto_clean and len(texto_clean) >= 2:
+                return texto_clean
+            else:
+                return None
+                
+        except Exception as e:
+            print(f"Error validando texto {texto}: {str(e)}")
+            return str(texto) if texto else None
+
+    # ========== MÉTODOS DE FALLBACK ==========
     
-    def _agregar_metadatos(self, datos: Dict[str, Any], texto: str, invoice_type: str, 
-                          confidence: float, quality_analysis: Dict[str, Any]) -> Dict[str, Any]:
-        """Agrega metadatos de calidad - ENVÍA TODOS LOS CAMPOS POSIBLES"""
+    def _fallback_validar_rnc(self, rnc: Any) -> Optional[str]:
+        """Fallback para validar RNC"""
+        return self.validar_rnc_formato(rnc)
+
+    def _fallback_validar_total(self, total: Any) -> Optional[float]:
+        """Fallback para validar total"""
+        return self.validar_total_formato(total)
+
+    def _fallback_validar_numero_factura(self, numero: Any) -> Optional[str]:
+        """Fallback para validar número de factura"""
+        return self.validar_numero_factura_formato(numero)
+
+    def _fallback_validar_fecha(self, fecha: Any) -> Optional[str]:
+        """Fallback para validar fecha"""
+        return self.parsear_fecha_robusto(fecha)
+
+    def _fallback_validar_ncf(self, ncf: Any) -> bool:
+        """Fallback para validar NCF"""
+        return self.validar_ncf_formato(ncf)
+
+    def _fallback_validar_hora(self, hora: Any) -> Optional[str]:
+        """Fallback para validar hora"""
+        return self.validar_hora_formato(hora)
+
+    def _fallback_validar_texto_general(self, texto: Any) -> Optional[str]:
+        """Fallback para validar texto general"""
+        return self.validar_texto_general(texto)
+
+    # ========== PARSER DE FECHAS MEJORADO ==========
+    
+    def parsear_fecha_robusto(self, texto_fecha: Any) -> Optional[str]:
+        """
+        Parser más robusto para fechas que evita el error 2025 -> 2020
+        """
+        try:
+            if not texto_fecha:
+                return None
+                
+            texto_limpio = str(texto_fecha).strip()
+            
+            # Log para debugging
+            print(f"🔍 Parseando fecha: '{texto_limpio}'")
+            
+            # Intentar múltiples formatos en orden de preferencia
+            formatos = [
+                '%d/%m/%Y',  # 08/10/2025
+                '%d-%m-%Y',  # 08-10-2025  
+                '%Y-%m-%d',  # 2025-10-08
+                '%d/%m/%y',  # 08/10/25 (CUIDADO con este)
+                '%d-%m-%y',  # 08-10-25
+            ]
+            
+            for formato in formatos:
+                try:
+                    fecha_parsed = datetime.strptime(texto_limpio, formato)
+                    
+                    # CORRECCIÓN CRÍTICA: Manejar correctamente los años de 2 dígitos
+                    if formato in ['%d/%m/%y', '%d-%m-%y']:
+                        # Asumir que años <= 30 son 2000+, años > 30 son 1900+
+                        if fecha_parsed.year > 2030:
+                            fecha_parsed = fecha_parsed.replace(year=fecha_parsed.year - 100)
+                    
+                    fecha_formateada = fecha_parsed.strftime('%d/%m/%Y')
+                    print(f"✅ Fecha parseada: '{texto_limpio}' -> '{fecha_formateada}'")
+                    return fecha_formateada
+                    
+                except ValueError:
+                    continue
+                    
+            # Si no coincide con ningún formato, devolver original
+            print(f"⚠️ No se pudo parsear fecha: '{texto_limpio}'")
+            return texto_limpio
+            
+        except Exception as e:
+            print(f"❌ Error parseando fecha '{texto_fecha}': {str(e)}")
+            return str(texto_fecha) if texto_fecha else None
+
+    # ========== SISTEMA OPTIMIZADO DE ENVÍO ==========
+    
+    def _agregar_metadatos_optimizado(self, datos: Dict[str, Any], texto: str, invoice_type: str, 
+                                    confidence: float, quality_analysis: Dict[str, Any]) -> Dict[str, Any]:
+        """Agrega metadatos de calidad - VERSIÓN OPTIMIZADA"""
         
-        # Crear una copia con TODOS los nombres posibles
-        resultado_completo = {}
-        
-        # 🔥 ENVIAR TODAS LAS VARIANTES POSIBLES
-        variantes = {
-            # NIT/RNC
-            'nit': datos.get('rnc') or datos.get('nit'),
-            'numero_documento': datos.get('rnc') or datos.get('nit'),
-            'identificacion': datos.get('rnc') or datos.get('nit'),
-            'documento': datos.get('rnc') or datos.get('nit'),
-            'rnc': datos.get('rnc'),
-            
-            # Fechas
-            'fecha': datos.get('fecha'),
-            'fecha_emision': datos.get('fecha'),
-            'fecha_documento': datos.get('fecha'),
-            
-            # Montos
-            'total': datos.get('total'),
-            'monto_total': datos.get('total'),
-            'importe': datos.get('total'),
-            'monto': datos.get('total'),
-            'valor': datos.get('total'),
-            
-            # Numeración
-            'numero_factura': datos.get('numero_factura'),
-            'numero_comprobante': datos.get('numero_factura'),
-            'ticket': datos.get('numero_factura'),
-            'numero': datos.get('numero_factura'),
-            
-            # Empresa
-            'razon_social': datos.get('razon_social'),
-            'nombre_empresa': datos.get('razon_social'),
-            'empresa': datos.get('razon_social'),
-            'cliente': datos.get('razon_social'),
-            'operador': datos.get('razon_social'),
-            
-            # Campos peaje
-            'vehiculo': datos.get('vehiculo'),
-            'tipo_vehiculo': datos.get('vehiculo'),
-            'estacion': datos.get('estacion'),
-            'lugar': datos.get('estacion'),
-            'hora': datos.get('hora'),
-            'hora_emision': datos.get('hora')
-        }
-        
-        # Agregar solo campos con valor
-        for campo, valor in variantes.items():
-            if valor is not None:
-                resultado_completo[campo] = valor
-                print(f"   🔥 Enviando: {campo} = {valor}")
+        # Usar el sistema optimizado de campos
+        resultado_optimizado = self.optimizar_campos_enviados(datos, invoice_type)
         
         # Agregar metadatos
-        resultado_completo.update({
+        resultado_optimizado.update({
             'tipo_factura': invoice_type,
             'confianza_clasificacion': round(confidence, 2),
             'calidad_texto': quality_analysis['calidad'],
-            'total_campos_encontrados': len([v for v in variantes.values() if v is not None]),
-            'metodo_extraccion': 'HIBRIDO_ML'
+            'total_campos_encontrados': len(datos),
+            'metodo_extraccion': 'HIBRIDO_ML',
+            'tiene_ncf': self._determinar_si_tiene_ncf(datos, invoice_type)
         })
         
-        print(f"🎯 ENVIANDO {len(resultado_completo)} CAMPOS A LA UI")
-        print("🔍 ESTRUCTURA COMPLETA:")
-        for key, value in resultado_completo.items():
+        print(f"🎯 ENVIANDO {len(resultado_optimizado)} CAMPOS A LA UI")
+        print("🔍 ESTRUCTURA OPTIMIZADA:")
+        for key, value in resultado_optimizado.items():
             print(f"   🏷️  {key}: {value}")
         
-        return resultado_completo
-    
+        return resultado_optimizado
+
+    def _determinar_si_tiene_ncf(self, datos: Dict[str, Any], invoice_type: str) -> bool:
+        """Determina si la factura tiene NCF basado en su tipo"""
+        # Facturas de peaje NO tienen NCF
+        if invoice_type == 'peaje':
+            return False
+        
+        # Para otros tipos, verificar si hay un campo NCF válido
+        ncf = datos.get('ncf') or datos.get('numero_factura')
+        if ncf:
+            return self.validar_ncf_formato(ncf)
+        
+        return False
+
+    def optimizar_campos_enviados(self, datos: Dict[str, Any], invoice_type: str) -> Dict[str, Any]:
+        """
+        Optimiza los campos enviados a la UI para evitar duplicación excesiva
+        """
+        try:
+            # Campos esenciales que siempre enviar
+            campos_esenciales = {
+                'rnc', 'fecha', 'total', 'numero_factura', 
+                'razon_social', 'tipo_factura', 'confianza_clasificacion',
+                'calidad_texto', 'total_campos_encontrados', 'metodo_extraccion',
+                'tiene_ncf'
+            }
+            
+            # Campos adicionales específicos por tipo de factura
+            campos_por_tipo = {
+                'peaje': {'vehiculo', 'estacion', 'hora', 'operador', 'ticket'},
+                'supermercado': {'cajero', 'itbis', 'subtotal', 'ncf'},
+                'restaurante': {'propina', 'mesa', 'servicio', 'ncf'},
+                'combustible': {'litros', 'producto', 'estacion_servicio', 'ncf'},
+                'general': {'nit', 'fecha_emision', 'monto_total', 'ncf'}
+            }
+            
+            campos_tipo_especifico = campos_por_tipo.get(invoice_type, campos_por_tipo['general'])
+            
+            # Combinar todos los campos a enviar
+            campos_a_enviar = campos_esenciales.union(campos_tipo_especifico)
+            
+            # Filtrar y mantener solo los campos necesarios
+            datos_optimizados = {}
+            for campo in campos_a_enviar:
+                if campo in datos:
+                    datos_optimizados[campo] = datos[campo]
+            
+            # Log de optimización
+            original_count = len(datos)
+            optimizado_count = len(datos_optimizados)
+            print(f"📦 Optimización campos: {original_count} → {optimizado_count} (-{original_count - optimizado_count})")
+            
+            return datos_optimizados
+            
+        except Exception as e:
+            print(f"❌ Error optimizando campos: {str(e)}")
+            return datos  # Fallback a datos completos
+
     def extract_data_from_text(self, texto: str, use_advanced: bool = False) -> Dict[str, Any]:
         """
         Método de compatibilidad - extrae datos del texto
@@ -325,3 +647,48 @@ class DataExtractor:
             use_advanced: Parámetro adicional para compatibilidad
         """
         return self.extraer_datos(texto)
+
+    # ========== MÉTODO DE EXTRACCIÓN ROBUSTO ==========
+    
+    def extraer_datos_avanzados(self, texto: str, tipo_factura: str, confianza: float) -> Dict[str, Any]:
+        """Método robusto para extracción avanzada con manejo de errores"""
+        try:
+            # Análisis de calidad del texto
+            quality_analysis = self.ml_extractor.analyze_text_quality(texto)
+            
+            # Extracción con Regex
+            datos_regex = self._extraer_con_regex(texto, tipo_factura)
+            
+            # Extracción con ML
+            datos_ml = self.ml_extractor.extract_with_ml(texto, tipo_factura)
+            
+            # Combinar resultados
+            datos_combinados = self._combinar_resultados(datos_regex, datos_ml, texto, tipo_factura)
+            
+            # Validar datos
+            datos_validados = self._validar_datos_robusto(datos_combinados, tipo_factura)
+            
+            # Optimizar y retornar
+            return self._agregar_metadatos_optimizado(
+                datos_validados, texto, tipo_factura, confianza, quality_analysis
+            )
+            
+        except Exception as e:
+            print(f"🚨 Error en extracción avanzada: {str(e)}")
+            return self._extraccion_basica_fallback(texto, tipo_factura)
+
+    def _extraccion_basica_fallback(self, texto: str, tipo_factura: str) -> Dict[str, Any]:
+        """Extracción básica como fallback cuando falla la avanzada"""
+        print("🔄 Usando extracción básica (fallback)")
+        
+        datos_basicos = {
+            'texto_extraido': texto[:500] + "..." if len(texto) > 500 else texto,
+            'tipo_factura': tipo_factura,
+            'confianza_clasificacion': 0.5,
+            'calidad_texto': 'MEDIA',
+            'metodo_extraccion': 'FALLBACK_BASICO',
+            'total_campos_encontrados': 0,
+            'tiene_ncf': False
+        }
+        
+        return datos_basicos
