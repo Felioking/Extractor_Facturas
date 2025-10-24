@@ -1,3 +1,25 @@
+# Procesamiento de imágenes y OCR
+paddleocr>=2.6.0
+paddlepaddle>=2.4.0
+opencv-python>=4.5.0
+pytesseract>=0.3.10
+
+# Interfaz gráfica
+tkinter
+
+# Procesamiento de PDFs
+pdf2image>=1.16.3
+pillow>=10.0.0
+
+# Procesamiento de datos y utilidades
+numpy>=1.21.0
 scikit-learn>=1.0.0
 spacy>=3.0.0
-numpy>=1.21.0
+python-dotenv>=1.0.0
+
+# Análisis de datos
+pandas>=1.3.0
+openpyxl>=3.0.0
+
+# Utilidades
+typing-extensions>=4.0.0

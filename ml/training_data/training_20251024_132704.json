@@ -1,0 +1,20 @@
+{
+  "timestamp": "20251024_132704",
+  "invoice_type": "dominican",
+  "text_sample": "RESET - LAS PALMERAS\nAutovia Juan Pablo II\nRNC: 132712447\nTel: 809-682-8459\nORIGINAL\n2:03:07\nFACTURA DE CREDITO FISCAL\nNCF:\nB0100076051\nVALIDO HASTA: 31/12/2025\n=ACT.NO: 953702\nFECHA:\n15/09/2025 12:00:00 AM\nCLIENTE: UNISOFT SRL\nRNC/CED: 130805466\nCant. Descripcion Precio\nItbis\nImporte\n1\nALMUERZO SUPER\n322.03\n57.97\n380.00\n1\nS. PELLEGRINO 25OML (BOTELLA)\n127.12\n22.88\n150.00\n1\nDASANI 20 OZ\n33.90\n6.10\n40.00\nSubTotal ==>\n483.05\nDesc.\n.==>\n0.00\nItbis\n=\n86.95\nTotal a Pagar RD$\n==>\n570.00\nTotal a Pagar USD\n=:\n9.50\nTotal a Pagar EUR\n->\n7.92\nForma de pago:\nEfectivo\nCheque\nTarjeta\nNcredito\n600.00\n0.00\n0.00\n0.00\nCambio ==>\n30.00\nLe Atendio: Caja justina\nVendedor: Ventas Palmeras\nGracias por preferirnos.-\nNO Aceptamos devoluciones, Verifique",
+  "extracted_data": {
+    "rnc": "132712447",
+    "fecha": "15/09/2025",
+    "total": 570.0,
+    "razon_social": "Autovia Juan Pablo II",
+    "itbis": "0.00"
+  },
+  "text_length": 738,
+  "fields_found": [
+    "rnc",
+    "fecha",
+    "total",
+    "razon_social",
+    "itbis"
+  ]
+}

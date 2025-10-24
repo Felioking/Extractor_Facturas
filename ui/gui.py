@@ -1,4 +1,4 @@
-# ui/gui.py - VERSIÓN CORREGIDA (Mapeo de Campos)
+# ui/gui.py - VERSIÓN COMPLETA CORREGIDA
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
 from PIL import Image, ImageTk
@@ -175,7 +175,7 @@ class ExtractorFacturasApp:
         campos_fiscal = [
             ("RNC Emisor:", "rnc_emisor"),
             ("Nombre Emisor:", "nombre_emisor"),
-            ("Comprobante:", "comprobante"),  # ✅ CAMBIO: Ahora es genérico "Comprobante"
+            ("Comprobante:", "comprobante"),
             ("Fecha Emisión:", "fecha_emision"),
             ("Fecha Vencimiento:", "fecha_vencimiento")
         ]
@@ -339,10 +339,10 @@ class ExtractorFacturasApp:
         else:
             self.lista_proveedores.insert(tk.END, "No hay proveedores frecuentes registrados")
 
-    # ========== MÉTODOS DE PROCESAMIENTO ==========
+    # ========== MÉTODOS DE PROCESAMIENTO CON DEBUG MEJORADO ==========
     
     def extraer_datos_factura(self):
-        """Extrae datos de la factura actual - VERSIÓN MEJORADA"""
+        """Extrae datos de la factura actual - CON DEBUG MEJORADO"""
         if not self.ruta_imagen:
             messagebox.showwarning("Advertencia", "Primero carga una factura")
             return
@@ -358,19 +358,21 @@ class ExtractorFacturasApp:
             self.texto_completo.delete(1.0, tk.END)
             self.texto_completo.insert(tk.END, texto)
             
-            # 🔥 EXTRAER DATOS CON EL NUEVO SISTEMA
-            print("\n" + "="*60)
-            print("🚀 INICIANDO EXTRACCIÓN CON SISTEMA ML MEJORADO")
-            print("="*60)
+            print("\n" + "="*80)
+            print("🚀 INICIANDO EXTRACCIÓN DESDE GUI")
+            print("="*80)
+            print(f"📁 Archivo: {os.path.basename(self.ruta_imagen)}")
+            print(f"📝 Texto OCR: {len(texto)} caracteres")
             
             # Usar el nuevo método de extracción
             self.datos_extraidos = self.data_extractor.extraer_datos(texto)
             
-            # 🔥 DEBUG: Mostrar estructura completa recibida
-            print("\n📦 ESTRUCTURA COMPLETA RECIBIDA DEL BACKEND:")
+            # 🔥 DEBUG MEJORADO: Mostrar estructura completa
+            print("\n🎯 ESTRUCTURA COMPLETA RECIBIDA EN GUI:")
+            print("-" * 50)
             for key, value in self.datos_extraidos.items():
-                if not key.startswith('confianza_') and key not in ['calidad_texto', 'estado_calidad', 'metodo_extraccion']:
-                    print(f"   📬 {key}: {value}")
+                print(f"   📬 '{key}': {value}")
+            print(f"Total campos recibidos: {len(self.datos_extraidos)}")
             
             # Llenar formularios
             self.llenar_formularios()
@@ -383,8 +385,8 @@ class ExtractorFacturasApp:
             if comprobante:
                 # Preparar datos para la base de datos
                 datos_db = {
-                    'rnc_emisor': self._obtener_valor_mapeado(['nit', 'rnc', 'numero_documento']),
-                    'nombre_emisor': self._obtener_valor_mapeado(['razon_social', 'nombre_empresa', 'empresa']),
+                    'rnc_emisor': self._obtener_valor_mapeado(['rnc_emisor', 'nit', 'rnc', 'numero_documento']),
+                    'nombre_emisor': self._obtener_valor_mapeado(['nombre_emisor', 'razon_social', 'nombre_empresa', 'empresa']),
                     'comprobante': comprobante,
                     'fecha_emision': self._obtener_valor_mapeado(['fecha', 'fecha_emision']),
                     'total': self._obtener_valor_mapeado(['total', 'monto_total', 'importe']),
@@ -401,7 +403,7 @@ class ExtractorFacturasApp:
                     self.actualizar_lista_proveedores()
                 else:
                     logger.warning(f"No se pudo guardar en BD: {mensaje}")
-            
+        
             messagebox.showinfo("Éxito", "Datos extraídos y procesados correctamente")
             
         except Exception as e:
@@ -411,115 +413,96 @@ class ExtractorFacturasApp:
             self.root.config(cursor="")
     
     def _obtener_comprobante_apropiado(self):
-        """Obtiene el comprobante apropiado según el tipo de factura"""
+        """Obtiene el comprobante apropiado según el tipo de factura - VERSIÓN CORREGIDA"""
         tipo_factura = self.datos_extraidos.get('tipo_factura', 'general')
         
+        # ✅ CORRECCIÓN: Para facturas dominicanas, priorizar NCF sobre número de factura
         if tipo_factura == 'peaje':
             # Para peaje, usar número de ticket
             return self._obtener_valor_mapeado(['numero_factura', 'ticket', 'numero'])
         else:
-            # Para otras facturas, buscar NCF primero
+            # ✅ CORRECCIÓN: Para facturas dominicanas, buscar NCF primero aunque haya número de factura
             ncf = self._obtener_valor_mapeado(['ncf'])
-            if ncf:
+            if ncf and ncf != 'False':
+                print(f"🎯 Usando NCF como comprobante: {ncf}")
                 return ncf
             else:
-                # Si no hay NCF, usar número de factura
-                return self._obtener_valor_mapeado(['numero_factura', 'numero_comprobante', 'ticket'])
+                # Solo si no hay NCF válido, usar número de factura
+                numero_factura = self._obtener_valor_mapeado(['numero_factura', 'numero_comprobante', 'ticket'])
+                if numero_factura:
+                    print(f"🎯 Usando número de factura como comprobante: {numero_factura}")
+                return numero_factura
     
     def llenar_formularios(self):
         """Llena los formularios con los datos extraídos - VERSIÓN CORREGIDA"""
         
-        # 🔥 MAPEO DE CAMPOS MEJORADO: Diferenciar entre NCF y Ticket
-        tipo_factura = self.datos_extraidos.get('tipo_factura', 'general')
+        print("\n🔄 INICIANDO MAPEO A GUI...")
         
+        # 🔥 MAPEO CORREGIDO - Sin typos
         mapeo_campos = {
             # Información Fiscal
-            'rnc_emisor': ['nit', 'rnc', 'numero_documento', 'identificacion', 'documento'],
-            'nombre_emisor': ['razon_social', 'nombre_empresa', 'empresa', 'cliente', 'operador'],
-            'comprobante': self._obtener_campos_comprobante(tipo_factura),  # ✅ CORRECCIÓN: Campos dinámicos
-            'fecha_emision': ['fecha', 'fecha_emision', 'fecha_documento'],
+            'rnc_emisor': ['rnc_emisor', 'nit', 'rnc', 'numero_documento'],
+            'nombre_emisor': ['nombre_emisor', 'razon_social', 'nombre_empresa', 'empresa'],
+            'comprobante': ['ncf', 'numero_factura', 'comprobante'],  # ✅ CORREGIDO: Sin typo
+            'fecha_emision': ['fecha', 'fecha_emision'],
             'fecha_vencimiento': ['fecha_vencimiento'],
             
             # Montos
             'subtotal': ['subtotal'],
             'impuestos': ['itbis', 'impuestos', 'iva'],
             'descuentos': ['descuentos'],
-            'total': ['total', 'monto_total', 'importe', 'monto', 'valor'],
-            'total_pagar': ['total_pagar']
+            'total': ['total', 'monto_total', 'importe'],
+            'total_pagar': ['total_pagar', 'total']
         }
         
+        # DEBUG: Mostrar qué campos tenemos disponibles
+        print("📦 CAMPOS DISPONIBLES EN datos_extraidos:")
+        for key, value in self.datos_extraidos.items():
+            if value and str(value).strip() and value != 'False':  # ✅ CORRECCIÓN: Ignorar "False"
+                print(f"   ✅ '{key}': {value}")
+            else:
+                print(f"   ❌ '{key}': VACÍO O FALSE")
+        
         # Llenar campos fiscales
+        print("\n🖊️  LLENANDO CAMPOS FISCALES:")
         for campo_ui, posibles_campos in mapeo_campos.items():
             if campo_ui in self.entries_fiscal:
                 valor = self._obtener_valor_mapeado(posibles_campos)
                 self.entries_fiscal[campo_ui].delete(0, tk.END)
                 self.entries_fiscal[campo_ui].insert(0, str(valor))
+                print(f"   📝 {campo_ui}: '{valor}'")
         
         # Llenar campos de montos
+        print("\n💰 LLENANDO CAMPOS DE MONTOS:")
         for campo_ui, posibles_campos in mapeo_campos.items():
             if campo_ui in self.entries_montos:
                 valor = self._obtener_valor_mapeado(posibles_campos)
                 self.entries_montos[campo_ui].delete(0, tk.END)
                 if isinstance(valor, (int, float)):
                     self.entries_montos[campo_ui].insert(0, f"RD$ {valor:,.2f}")
+                    print(f"   💰 {campo_ui}: RD$ {valor:,.2f}")
                 else:
                     self.entries_montos[campo_ui].insert(0, str(valor))
+                    print(f"   💰 {campo_ui}: '{valor}'")
         
-        # Mostrar en consola qué campos se encontraron
-        self._mostrar_campos_encontrados()
-
-    def _obtener_campos_comprobante(self, tipo_factura):
-        """Obtiene los campos apropiados para comprobante según el tipo de factura"""
-        if tipo_factura == 'peaje':
-            # Para peaje: número de ticket
-            return ['numero_factura', 'ticket', 'numero']
-        else:
-            # Para otras facturas: NCF primero, luego número de factura
-            return ['ncf', 'numero_factura', 'numero_comprobante', 'ticket']
-
+        print("✅ MAPEO A GUI COMPLETADO\n")
+    
     def _obtener_valor_mapeado(self, posibles_campos):
-        """Obtiene el valor del primer campo que exista en la lista"""
+        """Obtiene el valor del primer campo que exista en la lista - VERSIÓN CORREGIDA"""
         for campo in posibles_campos:
             if campo in self.datos_extraidos and self.datos_extraidos[campo]:
-                return self.datos_extraidos[campo]
+                valor = self.datos_extraidos[campo]
+                # ✅ CORRECCIÓN: Ignorar valores "False"
+                if str(valor).strip() and valor != 'False' and valor is not False:
+                    print(f"   🔍 Encontrado '{campo}': {valor}")
+                    return valor
+                else:
+                    print(f"   ❌ Campo '{campo}' tiene valor inválido: {valor}")
+            else:
+                print(f"   ❌ Campo '{campo}' no encontrado o vacío")
+        
+        print(f"   ⚠️  Ninguno de los campos {posibles_campos} fue encontrado")
         return ""
-
-    def _mostrar_campos_encontrados(self):
-        """Muestra en consola qué campos se encontraron y mapearon"""
-        print("\n🎯 CAMPOS MAPEADOS EN UI:")
-        
-        tipo_factura = self.datos_extraidos.get('tipo_factura', 'general')
-        
-        campos_mapeados = {
-            'RNC Emisor': self._obtener_valor_mapeado(['nit', 'rnc', 'numero_documento']),
-            'Nombre Emisor': self._obtener_valor_mapeado(['razon_social', 'nombre_empresa', 'empresa']),
-            'Comprobante': self._obtener_comprobante_apropiado(),
-            'Fecha Emisión': self._obtener_valor_mapeado(['fecha', 'fecha_emision']),
-            'Total': self._obtener_valor_mapeado(['total', 'monto_total', 'importe'])
-        }
-        
-        for campo, valor in campos_mapeados.items():
-            if valor:
-                print(f"   ✅ {campo}: {valor}")
-            else:
-                print(f"   ❌ {campo}: NO ENCONTRADO")
-        
-        # Mostrar tipo de comprobante
-        if tipo_factura == 'peaje':
-            print(f"   🎫 Tipo: Factura de Peaje (Ticket)")
-        else:
-            ncf = self._obtener_valor_mapeado(['ncf'])
-            if ncf:
-                print(f"   📄 Tipo: Factura Fiscal (NCF)")
-            else:
-                print(f"   📄 Tipo: Factura General (Número)")
-        
-        # Mostrar campos adicionales que podrían interesar
-        campos_adicionales = ['vehiculo', 'estacion', 'hora', 'subtotal', 'itbis']
-        print("\n📋 CAMPOS ADICIONALES:")
-        for campo in campos_adicionales:
-            if campo in self.datos_extraidos and self.datos_extraidos[campo]:
-                print(f"   📌 {campo}: {self.datos_extraidos[campo]}")
     
     def limpiar_formularios(self):
         """Limpia todos los formularios"""
@@ -614,7 +597,7 @@ class ExtractorFacturasApp:
         
         # Obtener datos
         comprobante = self._obtener_comprobante_apropiado()
-        rnc = self._obtener_valor_mapeado(['nit', 'rnc', 'numero_documento'])
+        rnc = self._obtener_valor_mapeado(['rnc_emisor', 'nit', 'rnc', 'numero_documento'])
         tipo_factura = self.datos_extraidos.get('tipo_factura', 'general')
         
         self.texto_validacion.insert(tk.END, "🔍 RESULTADOS DE VALIDACIÓN\n")
@@ -800,8 +783,8 @@ class ExtractorFacturasApp:
                     comprobante = self._obtener_comprobante_apropiado()
                     if comprobante:
                         datos_db = {
-                            'rnc_emisor': self._obtener_valor_mapeado(['nit', 'rnc', 'numero_documento']),
-                            'nombre_emisor': self._obtener_valor_mapeado(['razon_social', 'nombre_empresa', 'empresa']),
+                            'rnc_emisor': self._obtener_valor_mapeado(['rnc_emisor', 'nit', 'rnc', 'numero_documento']),
+                            'nombre_emisor': self._obtener_valor_mapeado(['nombre_emisor', 'razon_social', 'nombre_empresa', 'empresa']),
                             'comprobante': comprobante,
                             'fecha_emision': self._obtener_valor_mapeado(['fecha', 'fecha_emision']),
                             'total': self._obtener_valor_mapeado(['total', 'monto_total', 'importe']),

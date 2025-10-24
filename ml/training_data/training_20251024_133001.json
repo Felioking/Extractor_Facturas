@@ -1,0 +1,14 @@
+{
+  "timestamp": "20251024_133001",
+  "invoice_type": "simple",
+  "text_sample": "FACTURA\n/Fde\nNo.\nUniseft\nNombre:\nDirección:\nTel.:\nCondiciones:\nCANT.\nDESCRIPCION\nPRECIO\nTOTAL\nDarmetorio\n2006.00\nhatelovio\nLeall\nColeata I foon\nTOTAL\n2000\nDESPACHADO POR\nRECIBIDO POR",
+  "extracted_data": {
+    "razon_social": "RECIBIDO",
+    "total": 6.0
+  },
+  "text_length": 182,
+  "fields_found": [
+    "razon_social",
+    "total"
+  ]
+}

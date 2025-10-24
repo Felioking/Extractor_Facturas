@@ -1,0 +1,22 @@
+{
+  "timestamp": "20251024_150118",
+  "invoice_type": "dominican",
+  "text_sample": "Food Shop Eco Los Cruces\nCarretera Sanchez Km 15, Azua-\nSan Juan\nRNC: 116010415\nCajero: Yenniter\nFecha: 17/9/2025 13:56\nGalvan\n63.55 T1\n1\nCARLES PLATANITOS\nSAL 54 GR\nSubtotal\n$63.55\nITBIS\n$11.44\nTotal\n$74.99\nCASH\n$74.99\nAmount Tendered\n$74.99\nChange Due\n$0.00",
+  "extracted_data": {
+    "rnc_emisor": "116010415",
+    "nombre_emisor": "San Juan",
+    "fecha": "17/09/2025",
+    "razon_social": "Change Due",
+    "rnc": "116010415",
+    "total": 74.99
+  },
+  "text_length": 259,
+  "fields_found": [
+    "rnc_emisor",
+    "nombre_emisor",
+    "fecha",
+    "razon_social",
+    "rnc",
+    "total"
+  ]
+}
