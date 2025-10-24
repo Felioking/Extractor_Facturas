@@ -1,0 +1,18 @@
+{
+  "timestamp": "20251013_175313",
+  "invoice_type": "dominican",
+  "text_sample": "Food Shop Eco Los Cruces\nCarretera Sgnchgz Km 15, Azua-\nan Juan\n\nRNC: 116010415\n\n— ———]r[———]——.. $Ñ——. / ——]————\"L NEEZO CEEO DN\n\nCa1ero: Yenniter Fecha: 17/9/2025 13:43\nGalvan\n\n1 EMPANADA DE POLLO Y 5939 T\n\nQUESO\n3 HDASANI SOGML 20.00 TS\n1 s$0PA ISSIM TYV 84,74 Ti\nSubtotal $234.07\nITBIS $25,93\nTotal $260.00\n\nICREDIT CARD $269.00'\n\nNumero de Orden: 37847",
+  "extracted_data": {
+    "rnc": "116010415",
+    "fecha": "17/09/2025",
+    "razon_social": "Orden",
+    "total": 8474.0
+  },
+  "text_length": 357,
+  "fields_found": [
+    "rnc",
+    "fecha",
+    "razon_social",
+    "total"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "timestamp": "20251013_164423",
+  "invoice_type": "simple",
+  "text_sample": "€Lmt¿xw )Y*'¡***\nb .\nÁ%TDN KAFE ] KACAO N\nANC 1%1311751 ,\n\nMa r\n\nIMRina] Nuñaz de Cacaer\nFactun .\n\nNCP E318888889438\n\nFecha de vencimiento: 31-12-2825\n\nFecha Emisión: 67-18-2025\nRazon sacial cliente\nUNISOFT SAL\n\nRANC: 130885466\n\nLafitidad Descripción\n\nPrecio DescuentdTBIS\n\n1.88 É 772848 - SPAGHETTI\n8.08 8.00\n\n1,88 18% 772841 - -Ai Gamberi\n695.88 125,18\n\nSubtotal Gravado RD$:\nTotal ITBIS RD$:\nTotal RD$:\n\nNe AA A e e MA S n El e e A N e s - N NA E = E E E E EA l\n\nREFERENCIA: —\nGRACIAS POR SU VISITA\n\nPuede consultar la validez del documento\nescaneando el codigo QR.\n\nCédigo de Seguridad: eNXalJ\n\nES H 312, PI Milton.\n\n125,18\n\na N U C Y - Ml » | >hibt 7\n\n— —",
+  "extracted_data": {
+    "razon_social": "PI Milton",
+    "total": 12518.0,
+    "fecha_vencimiento": "31-12-2825",
+    "fecha_emision": "67-18-2025"
+  },
+  "text_length": 660,
+  "fields_found": [
+    "razon_social",
+    "total",
+    "fecha_vencimiento",
+    "fecha_emision"
+  ]
+}

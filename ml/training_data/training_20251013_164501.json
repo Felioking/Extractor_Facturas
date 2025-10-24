@@ -1,0 +1,16 @@
+{
+  "timestamp": "20251013_164501",
+  "invoice_type": "dominican",
+  "text_sample": "A\n\n131-60052-2\n\nFACTURA DE CREDITO FISCAL\nB010003322939\nValida Hasta:31/12/72026\n\nTARJETA\n———————————n—ÚÑi———————i———<€\nFACTURA.: 0782004 8/10/2025\nCLIENTE, : UNISOFT SR\nRNC/CED.: 130805466\nCAMARERO: B\nORDEN...: 1023324\nDESCRIPCION CANT PREQIO MONTO\nPASTA CON CAMARONES\n\na 508.47 508.47\nSODA AMARGA\nq 42.37 42.37\nC/A:2 subtotal: 550,84\n10% Ley: 5508\noOtros Cargos: 0.00\npescuanto: 0.00\nTthid: 9916\nTOTALINIDADARI — — 20801\noriginal : Cliente\ndopia :Vendaedor\n,00\nrayedon g DO\npevualta: :\nRNO : ..\n\nGRACIAS POR PREFERT\n\n___________...——-——-—-—\"\"—.\nFirma",
+  "extracted_data": {
+    "razon_social": "CLIENTE, : UNISOFT SR",
+    "rnc": "130805466",
+    "total": 55084.0
+  },
+  "text_length": 552,
+  "fields_found": [
+    "razon_social",
+    "rnc",
+    "total"
+  ]
+}

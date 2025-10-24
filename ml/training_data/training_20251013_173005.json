@@ -1,0 +1,14 @@
+{
+  "timestamp": "20251013_173005",
+  "invoice_type": "simple",
+  "text_sample": "LA TERRAZA DEL MUNDUNGO D.M.\nLA TERRAZA DEL MONDONGO D.M.\nCalle Maria Matilde Esteves 493, Yamasa,\nR|NC: 133259915\nTel: 8095250663\nOperación: 0109300007\nPRE-CUENTA\nNO FISCAL / NO FISCAL\nMESERO: kath01 |\nMESA: AO5\nCANT. PERSONAS: 1\nCLIENTE: Publico General\nCONDICIONES DE PAGO: AL CONTADO\n\nArticulo Cant P.U Importe\nFilete Detilapia 1 450.00 450.00\nCoca Cola: 13.5 07 1 35,00 3500\n\ntotal a pagar: RD$ 485,00",
+  "extracted_data": {
+    "total": 48500.0,
+    "razon_social": "PAGO"
+  },
+  "text_length": 406,
+  "fields_found": [
+    "total",
+    "razon_social"
+  ]
+}

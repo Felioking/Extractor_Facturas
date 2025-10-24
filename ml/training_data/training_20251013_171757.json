@@ -1,0 +1,18 @@
+{
+  "timestamp": "20251013_171757",
+  "invoice_type": "dominican",
+  "text_sample": "Fideicomiso RD Vial\nRNC: 131092659\nperador: Belkys Cesarina Urbaez\nstacion de Peaje 6 DE NOVIEMBRE\n\n— — e N D e ME a S e N S UN N AG Dl E ( M De EE E M D S P NO TE PA IS MNO dl E T N e N\n\nioket Nro: 405- 1653408\nehiculo: LIVIANO\nentido: ASCENDENTE\necha/Hora:30/09/2025 09:15;11\n¡mporte: RD$ : 100.00\n\nara Asist.Vial MOPC llamar a:\nTel 511\nvide usar e1 cinturon de seguridad\nz&n V1aje vaya con cuidado,",
+  "extracted_data": {
+    "rnc": "131092659",
+    "total": 100.0,
+    "numero_factura": "405-",
+    "razon_social": "Fideicomiso RD Vial"
+  },
+  "text_length": 401,
+  "fields_found": [
+    "rnc",
+    "total",
+    "numero_factura",
+    "razon_social"
+  ]
+}

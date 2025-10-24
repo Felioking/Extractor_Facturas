@@ -1,0 +1,16 @@
+{
+  "timestamp": "20251013_173437",
+  "invoice_type": "simple",
+  "text_sample": "Capuecino Flor Cafe\n5 Autopista Cabrera - Nagua\n, agua,\nRepública Dominicana, 33000\na Tel: +1 8098097637076\n__ mpreso 3 de octubre de 2025, 10:34a.m-\n\n3 de octubre de 2025, 10:34 a. Orden f:\nm. 9997\n\nMesa: 6 COCINA, cliente 1\nNombre Mesa: 314 Cajero: Ana\nRamona\nGarcia\nPolanco\n\nImpuesto 1 %:\n\nOmeleitt Abierto $400.00\nEspresso $100.00\nBotella de Agua Natural $30.00\naaa — — — —\n\nComida Total $400.00\nBebidas Total $130.00\n\n——]e— — —\n\nSub Total $530.00\n\nPropina Legal 10% (10%) $53.00\nTotal $583.00\n\n¡v\nThank You +( 00¿ ”\n\nPease Come Again! b$\n\nGuia de Propinas:\n15%=8$87.45 18%=65104.94 20%=8116.60\n\n———$[ —\noe —\n\nV .“ . - —_—.—_—_.\nimprimir desde ¡Pad usando TouchBistro Pro",
+  "extracted_data": {
+    "razon_social": "Sub Total",
+    "itbis": "400.00",
+    "total": 583.0
+  },
+  "text_length": 675,
+  "fields_found": [
+    "razon_social",
+    "itbis",
+    "total"
+  ]
+}

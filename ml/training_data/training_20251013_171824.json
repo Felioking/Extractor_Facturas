@@ -1,0 +1,24 @@
+{
+  "timestamp": "20251013_171824",
+  "invoice_type": "peaje",
+  "text_sample": "Fideicomiso RD Víal\nRNE 1310972659\nOperador: Smarling Garcíia\nEstacion de Peaje CSD TRAMO I\n\n— — ——] — n el e M M J e Se AA V DO e A l A m e N e C E U e T e A A e\n\nTicket Nro: 902-671919\nVehiculo: LIVIANO\nSentido: ASCENDENTE\nFecha/Hora:30/09/2025 09:23:59\nimporte: RO$ : 100.00\n\n=ra £sist.Vial MUPC Tlamar a:\nTel 511\n\n— n A S A N N RA m N N A AA S ae a e a a a —\n\nvide usar el cinturon de seguridad\nliaíe vava rnn miidardo",
+  "extracted_data": {
+    "fecha": "30/09/2025",
+    "numero_factura": "902-671919",
+    "razon_social": "Smarling Garcíia",
+    "vehiculo": "LIVIANO",
+    "estacion": "Peaje CSD TRAMO I",
+    "hora": "09:23:59",
+    "total": 100.0
+  },
+  "text_length": 422,
+  "fields_found": [
+    "fecha",
+    "numero_factura",
+    "razon_social",
+    "vehiculo",
+    "estacion",
+    "hora",
+    "total"
+  ]
+}

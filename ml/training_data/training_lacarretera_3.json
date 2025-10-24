@@ -1,0 +1,16 @@
+{
+  "fecha_procesamiento": "2025-10-13 17:46:42",
+  "archivo_origen": "C:/Users/farnaud/OneDrive - ISBEL S.A/Documents/Reportes Gastos/2025/0825/20250820_140122.jpg",
+  "datos_factura": {
+    "fecha": "20/08/2025",
+    "total": 180.0,
+    "rnc": "130805486",
+    "razon_social": "z;z;DLo N NNN",
+    "tipo_factura": "dominican",
+    "confianza_clasificacion": 0.7,
+    "calidad_texto": "ALTA",
+    "total_campos_encontrados": 4,
+    "metodo_extraccion": "HIBRIDO_ML",
+    "tiene_ncf": false
+  }
+}

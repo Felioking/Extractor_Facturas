@@ -1,0 +1,22 @@
+{
+  "timestamp": "20251013_172441",
+  "invoice_type": "peaje",
+  "text_sample": "Fideicomiso RD Vial\nRNC:131092659\nOperador: Maira Salas\nEstacion de Peaje Naranjal\n\nTicket Nro; 1603-000001\nvehiculo: LIVIANO\nventido: DESCENDENTE\n-echa/Hora:03/10/2025 15:47:14\nImporte: RD$ : 200.00\n\nJara Asist.Vial MOPC llamar a:\nTel 511\n\nlo olvide usar el cinturon de seguridad",
+  "extracted_data": {
+    "rnc": "131092659",
+    "total": 200.0,
+    "razon_social": "Fideicomiso RD Vial",
+    "vehiculo": "LIVIANO",
+    "estacion": "Peaje Naranjal",
+    "hora": "15:47:14"
+  },
+  "text_length": 280,
+  "fields_found": [
+    "rnc",
+    "total",
+    "razon_social",
+    "vehiculo",
+    "estacion",
+    "hora"
+  ]
+}

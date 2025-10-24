@@ -1,0 +1,18 @@
+{
+  "timestamp": "20251013_175855",
+  "invoice_type": "dominican",
+  "text_sample": "PAREDOR El BUCANERO\nGRUPO RODEUS SAL.\n131240331\n\nCARRETERA JUAN PABLO LL KM35 PARAJE RIO BOYA\n\n92000 RIO BOYA\n8094787272\n\nFACTURA\n( ORIGINAL )\n\nF000104-7819\n\nsep. 19 2025 07:28 p. m.WINKIN MIGUEL DE LOS SAN\n\nUnisoft\nNIF: 130805466\n\nARROZ CON FIDEO 1 Libra\n0.67 x RD$200,00 /kg\n\nCLUB SODA CANADA DRY 400ML\nAGUA DASANI 591M Unidad\n\n3 Artículos TOTAL\n\nTarjeta de crédito\n\nImpuestos incluidos Base\n\nITBIS 18% — RO$ 155,47\n10% DE LEY RD$ 187.29\n\nVálido hasta: 01-01-2027\nNCF: B0100033347\nRazon social: Unisoft\n\n....................................\n\nRD$134.00\nRDS65.00\nRD$35.00\n\nDG 2534,00\n\nRD$ 234.00\n\nRDS 27.98\nRDS 18.73",
+  "extracted_data": {
+    "total": 20000.0,
+    "razon_social": "Unisoft",
+    "subtotal": "155,47",
+    "ncf": false
+  },
+  "text_length": 616,
+  "fields_found": [
+    "total",
+    "razon_social",
+    "subtotal",
+    "ncf"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "timestamp": "20251013_175020",
+  "invoice_type": "peaje",
+  "text_sample": "Fideicom so RD Vial\nRNC:1:31092859\nOperador: Mad::1in Paniagua Segura\nEstacicn de Peaje SANCHEZ\n\n.. —..————-.—o-4—Maw-u-.vu.._—¡v__—n._.._…m-__._ _——-=-—-.-—--——.—_—\n\nTicket Nro: 304-1513361\nVehiculo: LIVIANO\nSentido: ASCENDENTE\nFecha/Hora:22f08/2025 08:18:46\nImporte: RD$ : 100.00\n\nPara Asiet.Vinl MO?C ]lamar a:\nTel 82)-688-1000\nde usa * el cinturon de seguridad\naje, viIYAa CON cuidado.\n\n,\nJ\n\n- .- — — — — —\n. n as s UN S UN v N E Y — E CA\n\na2\n\n, P\nNo Olv!\nRuen Y 1a",
+  "extracted_data": {
+    "total": 100.0,
+    "numero_factura": "304-1513361",
+    "razon_social": "Fideicom so RD Vial",
+    "vehiculo": "LIVIANO",
+    "hora": "08:18:46"
+  },
+  "text_length": 469,
+  "fields_found": [
+    "total",
+    "numero_factura",
+    "razon_social",
+    "vehiculo",
+    "hora"
+  ]
+}

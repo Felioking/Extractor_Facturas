@@ -1,0 +1,12 @@
+{
+  "timestamp": "20251013_173540",
+  "invoice_type": "international",
+  "text_sample": "FACTURAS) NEN r\n_ HHIO H\n\nHeO aa\na - CREDSTOL) CoNTADOÓLÍ\n\nPRECIO\nCANT. ARTICULOS UNITARIO\n\nA unta |\nT \"\n\nDESPACHADO POR RECIBIDO POR",
+  "extracted_data": {
+    "razon_social": "RECIBIDO"
+  },
+  "text_length": 133,
+  "fields_found": [
+    "razon_social"
+  ]
+}

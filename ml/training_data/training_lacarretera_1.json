@@ -1,0 +1,16 @@
+{
+  "fecha_procesamiento": "2025-10-13 17:39:10",
+  "archivo_origen": "C:/Users/farnaud/OneDrive - ISBEL S.A/Documents/Reportes Gastos/2025/1006/20251001_173908.jpg",
+  "datos_factura": {
+    "fecha": "01/10/2025",
+    "total": 255.0,
+    "rnc": "130805466",
+    "razon_social": "ITBIS",
+    "tipo_factura": "dominican",
+    "confianza_clasificacion": 0.7,
+    "calidad_texto": "ALTA",
+    "total_campos_encontrados": 4,
+    "metodo_extraccion": "HIBRIDO_ML",
+    "tiene_ncf": false
+  }
+}

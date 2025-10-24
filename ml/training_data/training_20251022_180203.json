@@ -1,0 +1,14 @@
+{
+  "timestamp": "20251022_180203",
+  "invoice_type": "simple",
+  "text_sample": "C/ Lorenzo Despracel Na\nD.N. * Tel.: 829-240:\n*FACTURA (\nA\n\n.\nf” — 16/9/2025 \" \"A\n\n;a 130805466\n\n“ SALCHICHA 'yg';lé\nSODA AMARGA\n\nbl AGUA DA5&N¡¡¿ 9%” |\n\n$326.61 $53.39 $380.00\nSubtotal ITBIS (18.0%)\nTARJETA\n\nBuen Proyecho. Gracias por su compral!!",
+  "extracted_data": {
+    "razon_social": "TARJETA\n\nBuen Proyecho",
+    "total": 380.0
+  },
+  "text_length": 248,
+  "fields_found": [
+    "razon_social",
+    "total"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "timestamp": "20251013_173229",
+  "invoice_type": "dominican",
+  "text_sample": "PLAZA PABLO MIGUELINA 4 ELTAS SAL\n\nAUTOPISTA DUARTE KM 60 (LA CUMBRE)\nTEL.: 809 525 3769 / 809 525 7666\nRNC: 114014261\n\nRES DGII: 05-2011 DEL: 25/05/2011\nCOMPROBANTE AUTORIZADO POR DGII\n01/10/2025 18:39:29\nNIF:4011270000112495\nNCF :00000000B0100141186\nRNC: 130805466\nUNISOFT SRL\n\n-E .i as —\nARTICULOS VARIOS\n\nSUBTOTAL 57.20 375.00\nTOTAL A PAGÁR 5720 375.00\nTARJETA DE CREDITU 375.00\nFactura de c\n\ntado\n01830101110101111120011118E4101088EE40RD\n\nNIF:4011270000112495\n24801 17070600545 TSPE50FP VO1.07.RD.R",
+  "extracted_data": {
+    "rnc": "114014261",
+    "razon_social": "TEL.: 809 525 3769 / 809 525 7666",
+    "ncf": false,
+    "total": 375.0
+  },
+  "text_length": 503,
+  "fields_found": [
+    "rnc",
+    "razon_social",
+    "ncf",
+    "total"
+  ]
+}

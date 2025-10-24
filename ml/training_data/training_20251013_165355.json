@@ -1,0 +1,24 @@
+{
+  "timestamp": "20251013_165355",
+  "invoice_type": "peaje",
+  "text_sample": "Fideicomiso RD Vial\nRNC: 131092659\nOperador: MARCIA GRISELDA SANTANA DE MORIL\nLO\nEstacion de Peaje SANCHEZ\n\n— - - l E E E E E E e — — E — — — E N E D N D DD\n\nTicket Nro: 304-1513361\nVehiculo: LIVIANO\nSentido: ASCENDENTE\nFecha/Hora:10/10/2025 064723\nImporte: RD$ : 100.00\n\nPara Asist.Vial MOPC llamar a:\n\nTel 511\nNo olvide usar el cinturon de seguridad\nBuen Viaje, vaya con cuidado,",
+  "extracted_data": {
+    "rnc": "131092659",
+    "fecha": "10/10/2025",
+    "total": 100.0,
+    "numero_factura": "304-1513361",
+    "razon_social": "Fideicomiso RD Vial",
+    "vehiculo": "LIVIANO",
+    "estacion": "Peaje SANCHEZ"
+  },
+  "text_length": 381,
+  "fields_found": [
+    "rnc",
+    "fecha",
+    "total",
+    "numero_factura",
+    "razon_social",
+    "vehiculo",
+    "estacion"
+  ]
+}

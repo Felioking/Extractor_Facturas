@@ -1,0 +1,26 @@
+{
+  "timestamp": "20251013_172520",
+  "invoice_type": "peaje",
+  "text_sample": "Fideicomiso RD Vial\nRNC: 131092659\nOperador: Marni Rosmery Ramirez\nEstacion de Peaje CSD TRAMO II\n\nTicket Nro: 1003-1076245\nVehiculo: LIVIANO\nSentido: DESCENDENTE\nFecha/Hora:03/10/2025 16:07:33\nImporte: RD$ : 100.00\n\nPara Asist.Vial MOPC llamar a:\nTel 511\n\n- — —] — . — . EN 06 T NE U D E 0 EE E N — E S U AE UN E D E E E EE A S e E e e — — — —\n\nNo olvide usar el cinturon de seguridad",
+  "extracted_data": {
+    "rnc": "131092659",
+    "fecha": "03/10/2025",
+    "total": 100.0,
+    "numero_factura": "1003-1076245",
+    "razon_social": "Fideicomiso RD Vial",
+    "vehiculo": "LIVIANO",
+    "estacion": "Peaje CSD TRAMO II",
+    "hora": "16:07:33"
+  },
+  "text_length": 385,
+  "fields_found": [
+    "rnc",
+    "fecha",
+    "total",
+    "numero_factura",
+    "razon_social",
+    "vehiculo",
+    "estacion",
+    "hora"
+  ]
+}

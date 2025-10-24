@@ -1,0 +1,18 @@
+{
+  "timestamp": "20251013_174123",
+  "invoice_type": "dominican",
+  "text_sample": "LA CARRETERA\n\nRNC: 132-21949-1\nLA CARRETERA PARADOR SRL\n\nBOMBA TOTAL, 132-21949-1\nTELEFONO: 809-573-4214\n\nFACTURA\nNúmero FF00236639 Cajero/a: MARIANA\nFecha: 01/10/2025 Turno: 2562\n\nHora: 05:37 pm\n\nCON VALOR FISCAL\nB0100050504\n\nValido hasta el 31/12/2025\nCliente: UNISOFT SRL\nCédula/RNC: 130805466\n\nDESCRIPCIÓN _CANTIDAD PRECIO IMPORTE -\n1 AGUA DASANI 2007 30.00\n\n1 CROISSANT JAMON Y\nQUESO 190.67\nSub-Total 220.68\n% Ley: 0.00\n\n% ITBIS: 34.32\n— a o — ]o——]—\n\nTotal ADS: 255.00\n\nForma de Pago:\nEfectivo - 30000\nnevuelta 45 00",
+  "extracted_data": {
+    "rnc": "130805466",
+    "fecha": "01/10/2025",
+    "razon_social": "ITBIS",
+    "total": 255.0
+  },
+  "text_length": 522,
+  "fields_found": [
+    "rnc",
+    "fecha",
+    "razon_social",
+    "total"
+  ]
+}

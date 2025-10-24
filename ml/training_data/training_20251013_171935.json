@@ -1,0 +1,24 @@
+{
+  "timestamp": "20251013_171935",
+  "invoice_type": "peaje",
+  "text_sample": "rideicomiso RD Vi\n\nS lal\n\n: RNC¡131092659\nEperador: Cindy Pamela Valdez\nstacion de Peaje CSD TRAMO II\n\nT1cket Nro: 1011-546574\nVehiculo: LIVIANO\nSentido: ASCENDENTE\nFecha/Hora:30/09/2025 09:38:12\nImporte: RD$ : 100.00\n\nPara Asist.Vial MOPC llamar a:\nTel 511\n\n_-.-..—.—.—.--...——...._-—-—-——————_—.—___\nrr rTETEE\n\nNo olvide usar el cinturon de seguridad\n\n—",
+  "extracted_data": {
+    "fecha": "30/09/2025",
+    "total": 100.0,
+    "numero_factura": "1011-546574",
+    "vehiculo": "LIVIANO",
+    "hora": "09:38:12",
+    "razon_social": "Vial MOPC",
+    "rnc": "131092659"
+  },
+  "text_length": 355,
+  "fields_found": [
+    "fecha",
+    "total",
+    "numero_factura",
+    "vehiculo",
+    "hora",
+    "razon_social",
+    "rnc"
+  ]
+}

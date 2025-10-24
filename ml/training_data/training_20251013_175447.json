@@ -1,0 +1,20 @@
+{
+  "timestamp": "20251013_175447",
+  "invoice_type": "dominican",
+  "text_sample": "RESET - LAS PALMERAS\n\nAutovia Juan Pablo 17\nRNe: 132712447 Tel.: 809-6882 54159\n2:03:07\nORIGINAL P\nFACTURA DE CREDITO FISCAL\n\nNCF: B0100076051\n\nVALIDO HASTA: 31/12/2025\n\nFACT, No.: 953702\n\nFECHA: 15/09/2025 *12:00:00 AM\nOLIENTE: UNISOFT SR\nRNC/CED.: 130805466\n\n1 ALMUERZO SUPER\n\nB2203 579 380,00\n1 S PELLEGRINO 250ML (BOTELLA)\n\nj 2268 150,00\n\n1 DASANI20 OZ\n33.90 6.10 40,00\n\n483.05\n\n0.00\n\nltbis ==2 _ 8605\n\nTotal a Pagar RIDS ==> 570.00\n\nTotal a Pagar USD ==> 9.50\n\nTotal a Pagar EUR ==> 7,92\n\nForma de pago:\nEfectivo Cheque Tarjeta — Nceredito\n600.00 0.00 0.00 0.00\nCambio :==> 30.00\n\nLe Atendio: Caja justina\nVendedor: Ventas Palmeras\n\nGracias por preferirnos:-\n* NO Aceptamos devoluciones, Verifique\n\n5u Mmercancia al recibirla.\n.“Y innnracen nar POSA4 320 ACEN 977 ...",
+  "extracted_data": {
+    "fecha": "15/09/2025",
+    "razon_social": "OLIENTE: UNISOFT SR",
+    "ncf": false,
+    "rnc": "130805466",
+    "total": 792.0
+  },
+  "text_length": 772,
+  "fields_found": [
+    "fecha",
+    "razon_social",
+    "ncf",
+    "rnc",
+    "total"
+  ]
+}

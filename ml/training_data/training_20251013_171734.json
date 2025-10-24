@@ -1,0 +1,12 @@
+{
+  "timestamp": "20251013_171734",
+  "invoice_type": "dominican",
+  "text_sample": "MN FOOD COURT\n\nSNA DE NOVIEMBRE $ 1/2, ENVONBE, ESTECTON\n'—_saqu;nmwuume H x3»3)3va g807\n\n-5-2009 DEL 06/ABRIL/2009\n025 0 LPMPRU34NÍP AUTORIZADO POR NGEI\n\nF ¡f\"-'%2:5mounn 1515\nD —_wm…wommnn\n“ 3080746\n\n| FRLI!JRR PRRB ¡ÍHFDITU I-ISCRL\n\nIÍBIS vwm\n00\n¡&º Pl U¡%ZL UE PIZZA 3966 260.00 ?\nubtu \"a 1965 25000\nCOTAL 39,66 26000\nfectivo 50000\nPINBIO 240.00\n\ntarry que '*D'09¡\"325 09 08 CAJA:1\nLa Rtwd1n DIANNE\n111031703 - CREDHU F L - ORDEN 4920\n\na º3323cooomst$ \"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\nrarFtO\nd",
+  "extracted_data": {
+    "razon_social": "ORDEN"
+  },
+  "text_length": 493,
+  "fields_found": [
+    "razon_social"
+  ]
+}

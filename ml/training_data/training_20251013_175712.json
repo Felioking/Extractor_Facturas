@@ -1,0 +1,14 @@
+{
+  "timestamp": "20251013_175712",
+  "invoice_type": "international",
+  "text_sample": "| -\n\nMESET . us…\n\nE\nle 10\n\n\"a..\n— ACTUMA 0 C TO ACAN\n\nVP—\n\n-acT “ - V\n\nM…M * _ i\"core\nE— r re TeoT TT TETIT TEO T- TE\n1 DESAYUNO REGULAR\n\n18271 7 205 00\n1 ADICIONAL COMPLETO\n\n7027 115 0 00\n1 LSPRLSSO DE LA CASA\n\n6350 114 7800\n1 DASANI20 0Z\n\n3390 610 4000\n\nSLEISEl SRNE I=i:BN56::: HEEBEEEIE55= 33 35=--\nSub ! oñal 347 46\n\nTotala Pagar KDS ==> — 410.00\nTotal a Pagar USD ==> 683\nTotal a Pagar EUA_==> 569\n\nrome de pago ss\nLectivo Cheque\n000 0.00\n\n9.00\n0.00",
+  "extracted_data": {
+    "razon_social": "SLEISEl SRNE I",
+    "total": 410.0
+  },
+  "text_length": 455,
+  "fields_found": [
+    "razon_social",
+    "total"
+  ]
+}

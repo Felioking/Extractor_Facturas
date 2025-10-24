@@ -1,0 +1,22 @@
+{
+  "timestamp": "20251013_172856",
+  "invoice_type": "dominican",
+  "text_sample": "COMPAÑIA DISTRIBUIDORA DE COMBUSTIBLE\nANC: 130397988\nUNITED STORE\n\n8093571007\nAV, PRESIDENTE ANTONNIO GUZMAN ESQ CIRVU\nC.P.:10204, Santo Domingo, Rap. Dom\nPRUEBAOhotmail.com\n\nFACTURAS CONSUMIIDOR FINAL\n\nORIGINAL\nDOCUMENTO — cAJA VENDEDOR TOO\n1-229527 02 10].020229471\nNCF: E320000174940\nFECHA: — 30/09/202509:58A VENCE: 31/12/2026\nCLIENTE: CONTECSI\nRNC: 131661653\nCAJERO: 33 - Danirca Arias\n___._.__________—.—______________…__ s — —]——\nARTICULO 1D DESCRIPCION\nCANTIDAD PRECIO — DESCTO ITEIS VALOR\n_______———-——*—”_——.———___-—-——fº\"——”,\"'”\nPR-07-000077 AGUA DASANI20 ONZ:591 ML\nE 2 20.00 0.00 0.00 60.00\n—\nTOTAL DE PRODUCTOS: 2\nSUB-TOTAL: 60.00\nDESCUENTO: 0.00\nITBIS: 0.00\nTOTAL RD$: 60.00\ne a\nEFECTIVO *** $60,00\nTOTAL PAGADO: 100.00\n\nCAMBIO: 40.00\n\n— ——]—— — m a\nPARA DEVOLUCIONES DEBE PRESENTAR ESTA FACTURA EN ORIGINAL.\nNO ACEPTAMOS DEVOLUCIONES DE PRODUCTOS EN MAL ESTADO.\n\nFfecha y hora firma\n30-09-2025 09:58:34\n\ncódigo de Seguridad\nNIgEN%2B\n\nGRACIAS POR SU COMDBR Al",
+  "extracted_data": {
+    "rnc": "131661653",
+    "fecha": "30/09/2025",
+    "total": 6000.0,
+    "razon_social": "CLIENTE: CONTECSI",
+    "hora": "09:58:34",
+    "ncf": true
+  },
+  "text_length": 974,
+  "fields_found": [
+    "rnc",
+    "fecha",
+    "total",
+    "razon_social",
+    "hora",
+    "ncf"
+  ]
+}

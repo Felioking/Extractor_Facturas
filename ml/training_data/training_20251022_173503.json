@@ -1,0 +1,26 @@
+{
+  "timestamp": "20251022_173503",
+  "invoice_type": "peaje",
+  "text_sample": "Fideicomiso RD Vial\nRNC: 131092659\nOperador: Lorenza Torres De Reyes\nEstacion de Peaje Naranjai\n\nTicket Nro: 1602-000001\nVehiculo: LIVIANO\nSentido: ASCENDENTE\nFecha/Hora:19/09/2025 07:24:03\nImporte: RD$ : 200.00\n\nPara Asist.Víal MOPC llamar a:\nTel 511\n\n— o—————T—TTK[[—tK]—]—_;—[—]—;—— —\n— ] EE E -",
+  "extracted_data": {
+    "rnc": "131092659",
+    "fecha": "19/09/2025",
+    "total": 200.0,
+    "numero_factura": "1602-000001",
+    "razon_social": "Fideicomiso RD Vial",
+    "vehiculo": "LIVIANO",
+    "estacion": "Peaje Naranjai",
+    "hora": "07:24:03"
+  },
+  "text_length": 298,
+  "fields_found": [
+    "rnc",
+    "fecha",
+    "total",
+    "numero_factura",
+    "razon_social",
+    "vehiculo",
+    "estacion",
+    "hora"
+  ]
+}

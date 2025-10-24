@@ -1,0 +1,26 @@
+{
+  "timestamp": "20251013_175538",
+  "invoice_type": "peaje",
+  "text_sample": "Fideicomiso RD Vial\nRNC: 131092659\nOperador: Vianca Rondén Polanco\nEstacion de Peaje Guaraguao\n\nTicket Nro: 1702-000001\nVehiculo: LIVIANO\nSentido: ASCENDENTE\nFecha/Hora:19/09/2025 08:48:26\nImporte: RD$ ; 200,00\n\nPara ksist.Vial MOPC llamar a:\nTel 511\n\ne e e e e e e e U e M E e e E EN E CEN e S N e NN = — — — —\nh - a eo . — — —\n\nNo olvíde usar el cinturon de seguridad",
+  "extracted_data": {
+    "rnc": "131092659",
+    "fecha": "19/09/2025",
+    "numero_factura": "1702-000001",
+    "razon_social": "Fideicomiso RD Vial",
+    "vehiculo": "LIVIANO",
+    "estacion": "Peaje Guaraguao",
+    "hora": "08:48:26",
+    "total": 20000.0
+  },
+  "text_length": 369,
+  "fields_found": [
+    "rnc",
+    "fecha",
+    "numero_factura",
+    "razon_social",
+    "vehiculo",
+    "estacion",
+    "hora",
+    "total"
+  ]
+}

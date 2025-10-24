@@ -1,0 +1,26 @@
+{
+  "timestamp": "20251014_145738",
+  "invoice_type": "peaje",
+  "text_sample": "Fideicomiso RD Vial\nRNC: 131092659\nOperador: Elizabeth Robles Matías\nEstacion de Peaje Guaraguao\n\nTicket Nro: 1704-000001\nVehiculo: LIVIANO\nSentido: DESCENDENTE\nFecha/Hora:19/09/2025 18:29:04\nImporte: RD$ : 200.00\n\nPara Asist.Vial MOPC llamar a:\nTel 511\n\nm—_——] . — — — — s - Ne A o l o e E e E A E E E A RD e S e m e \".\n\nNo olvide usar el cinturon de seguridad",
+  "extracted_data": {
+    "rnc": "131092659",
+    "fecha": "19/09/2025",
+    "total": 200.0,
+    "numero_factura": "1704-000001",
+    "razon_social": "Fideicomiso RD Vial",
+    "vehiculo": "LIVIANO",
+    "estacion": "Peaje Guaraguao",
+    "hora": "18:29:04"
+  },
+  "text_length": 361,
+  "fields_found": [
+    "rnc",
+    "fecha",
+    "total",
+    "numero_factura",
+    "razon_social",
+    "vehiculo",
+    "estacion",
+    "hora"
+  ]
+}

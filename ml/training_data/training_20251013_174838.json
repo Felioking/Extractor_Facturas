@@ -1,0 +1,14 @@
+{
+  "timestamp": "20251013_174838",
+  "invoice_type": "simple",
+  "text_sample": "*.€ \".'\nSu\n\nLA Q…AR$… TERAÁ\n\neZ\nN\n\nM'$\n““\n\nNNC: 132— '1:149-1\nLA CARRETERA PxRADOR SRL\n\nBOMEA TOTAL, | 12-21949-1\nTELI FONO: 805 573-4214\n\nFACTURA\nNúmero FFO:.00139 Cajero/a: ROSA\nFecha: + 20/()::/2025 jurno: 2195\nHora: 02:1| pm í LEVAR 1 - *CAJA”\nCON VALOR F¡SCAL\n\nB0100046702\n\nVálido hasta ei 31/12/2025\nCliente: UNISOFT SRL\nCédula/RNC: 1:10805466\n\n| FPPRECIO IMPORTE\n\n1 CATIVIA UNIDA(L) 67.79\n\n1 ESPRESSO DOPLE 105.93\nSul Í:rotal ZA\n6 Ley: 0.00\n\n% ¡TBIS: 31.27\n\n—\n—\n\nTotal RIS: __ 205.00\n\nForma de Pa1jo: —\nTarjeta de Ci »dito 205.00",
+  "extracted_data": {
+    "total": 205.0,
+    "razon_social": "Total RIS"
+  },
+  "text_length": 536,
+  "fields_found": [
+    "total",
+    "razon_social"
+  ]
+}

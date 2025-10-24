@@ -1,0 +1,16 @@
+{
+  "timestamp": "20251022_173647",
+  "invoice_type": "dominican",
+  "text_sample": "BONJOUR AURORA DEL SUR FACTURA DE CREDITO FISCAL\nAUTO PISTR NCF:BO100177492\n\n6 DE NOVIEMBRE Valida Hasta: 31/12/2075\n\nRNC: 130956146\nTEL: (809) 682 1443\n\nNombre Cte: UNISOFT SR\nRNC: - 130805468\n\nDocumento: - 64532 Fecha: 17.09.25\n\nNTPY - 001 Hora: 08:42\n\nCANTIDAD DESCRIPCION L8IS — IMPORTE\n\n1000.00 X — 1.00 Recarga Peaje El — 0.00 1,000,00\nSUBTOTAL 1,000,00\n41 TBIS, 0. 00\nITBIS 0,00\nTOTAL PESOS 1,000, 00\n\nITTS TCE TI EE\n\n2 GRACIAS POR SU VISITA +*+\nX FELIZ VIAJE — xsxxaa\n\nit*tixtt**l**¡***lill¡*¡**tl*i\n\n— —l",
+  "extracted_data": {
+    "rnc": "130956146",
+    "total": 1000.0,
+    "razon_social": "Nombre Cte: UNISOFT SR"
+  },
+  "text_length": 513,
+  "fields_found": [
+    "rnc",
+    "total",
+    "razon_social"
+  ]
+}

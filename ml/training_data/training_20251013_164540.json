@@ -1,0 +1,26 @@
+{
+  "timestamp": "20251013_164540",
+  "invoice_type": "peaje",
+  "text_sample": "Fídeicomiso RD Via]\nRNC:131092659\nOperador : Yenny Marja Tayeras Gomerís\nEstacion de Peaje Guaraguan\n\n__——————————_———\n\n— oo MA — —\n\nTicket Nro: 1/03-000001\nVehiculo: LIVIANO\nsentido: DESCENDENTE\nFecha/Hora:09/10/2025 21:19:20\nImporte: - RD$ : 200.00\n\nPara Asist.Vial MOPC Tlamar a:\nTel 511\n\n__.—-———-————_—————_——-——-——\n= — — —\n\n— — —\n— — — ———\n\n— —\n\naal\n\nNo olvíde usar el cinturon de seguridad",
+  "extracted_data": {
+    "rnc": "131092659",
+    "fecha": "09/10/2025",
+    "total": 200.0,
+    "numero_factura": "1",
+    "razon_social": "Fídeicomiso RD Via]",
+    "vehiculo": "LIVIANO",
+    "estacion": "Peaje Guaraguan",
+    "hora": "21:19:20"
+  },
+  "text_length": 396,
+  "fields_found": [
+    "rnc",
+    "fecha",
+    "total",
+    "numero_factura",
+    "razon_social",
+    "vehiculo",
+    "estacion",
+    "hora"
+  ]
+}
